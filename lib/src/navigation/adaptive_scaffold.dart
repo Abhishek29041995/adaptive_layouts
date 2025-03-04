@@ -7,7 +7,7 @@ import 'adaptive_navigation.dart';
 // Use conditional import to load the correct implementation
 import '../navigation/auto_route_helper.dart'
     if (dart.library.io) '../navigation/auto_route_helper_impl.dart'
-    if (dart.library.html) '../navigation/auto_route_helper_stub.dart';
+    if (dart.library.html) '../navigation/auto_route_helper_fallback.dart';
 
 class AdaptiveScaffold extends StatefulWidget {
   final List<NavigationItem> destinations;
@@ -31,11 +31,10 @@ class AdaptiveScaffold extends StatefulWidget {
 
 class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   int _selectedIndex = 0;
-  final AutoRouteHelper _autoRouteHelper = AutoRouteHelper.instance;
 
   void _onDestinationSelected(int index) {
     if (widget.useAutoRoute) {
-      _autoRouteHelper.setActiveIndex(context, index);
+      AutoRouteHelper.instance.setActiveIndex(context, index);
     } else {
       setState(() {
         _selectedIndex = index;
@@ -49,12 +48,14 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   @override
   Widget build(BuildContext context) {
     if (widget.useAutoRoute) {
-      return _autoRouteHelper.wrapWithAutoTabsRouter(
-        routes: widget.destinations.map((item) => item.route).toList(),
+      return AutoRouteHelper.instance.wrapWithAutoTabsRouter(
+        routes: widget.destinations
+            .map((item) => item.route)
+            .toList(), // No PageRouteInfo reference
         builder: (context, child, controller) {
-          final int activeIndex = _autoRouteHelper.getActiveIndex(context);
-          return _buildScaffold(
-              context, child, activeIndex, _autoRouteHelper.setActiveIndex);
+          final tabsRouter = AutoTabsRouter.of(context);
+          return _buildScaffold(context, child, tabsRouter.activeIndex,
+              tabsRouter.setActiveIndex);
         },
       );
     } else {

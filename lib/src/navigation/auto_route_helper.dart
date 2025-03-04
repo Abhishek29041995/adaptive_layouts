@@ -10,7 +10,7 @@ abstract class AutoRouteHelper {
   }
 
   Widget wrapWithAutoTabsRouter({
-    required List<PageRouteInfo> routes,
+    required List<dynamic> routes, // Change type from PageRouteInfo to dynamic
     required Widget Function(BuildContext, Widget, dynamic) builder,
   });
 

@@ -8,7 +8,7 @@ class AutoRouteHelperImpl extends AutoRouteHelper {
 
   @override
   Widget wrapWithAutoTabsRouter({
-    required List<PageRouteInfo> routes,
+    required List<dynamic> routes,
     required Widget Function(BuildContext, Widget, dynamic) builder,
   }) {
     return Builder(
