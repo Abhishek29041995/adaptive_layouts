@@ -2,14 +2,26 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/widgets.dart';
 import 'auto_route_helper.dart';
 
-// Use `auto_route` when available
-AutoRouteHelper _instance = AutoRouteHelperImpl();
-
 class AutoRouteHelperImpl extends AutoRouteHelper {
+  AutoRouteHelperImpl() {
+    AutoRouteHelper.setImplementation(this);
+  }
+
   @override
-  void pushRoute(BuildContext context, dynamic route) {
-    if (route is PageRouteInfo) {
-      AutoRouter.of(context).push(route);
-    }
+  Widget wrapWithAutoTabsRouter({
+    required List<PageRouteInfo> routes,
+    required Widget Function(BuildContext, Widget, TabsRouter) builder,
+  }) {
+    return AutoTabsRouter(routes: routes, builder: builder);
+  }
+
+  @override
+  void setActiveIndex(BuildContext context, int index) {
+    AutoTabsRouter.of(context).setActiveIndex(index);
+  }
+
+  @override
+  int getActiveIndex(BuildContext context) {
+    return AutoTabsRouter.of(context).activeIndex;
   }
 }
