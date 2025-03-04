@@ -29,10 +29,10 @@ class AdaptiveNavigation extends StatelessWidget {
     if (item.onTap != null) {
       item.onTap!();
     } else if (item.autoRouteDestination != null) {
-  AutoRouteHelper.instance.pushRoute(context, item.autoRouteDestination);
-} else if (item.normalRouteDestination != null) {
-  AutoRouteHelper.instance.pushRoute(context, item.normalRouteDestination);
-}
+      AutoRouteHelper.instance.pushRoute(context, item.autoRouteDestination);
+    } else if (item.normalRouteDestination != null) {
+      AutoRouteHelper.instance.pushRoute(context, item.normalRouteDestination);
+    }
   }
 
   @override

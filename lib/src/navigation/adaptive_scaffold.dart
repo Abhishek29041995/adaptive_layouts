@@ -34,7 +34,8 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
 
   void _onDestinationSelected(int index) {
     if (widget.useAutoRoute) {
-      AutoRouteHelper.instance.pushRoute(context, widget.destinations[index].route);
+      AutoRouteHelper.instance
+          .pushRoute(context, widget.destinations[index].route);
     } else {
       setState(() {
         _selectedIndex = index;
