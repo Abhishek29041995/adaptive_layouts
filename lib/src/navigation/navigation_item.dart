@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
 class NavigationItem {
-  final String label;
+  final String title;
   final Widget icon; // Accepts any Widget (Icon or Image)
+  final String? autoRouteDestination; // For AutoRoute navigation
+  final Widget? normalRouteDestination; // For normal navigation
+  final VoidCallback? onTap; // Custom callback
 
   NavigationItem({
-    required this.label,
+    required this.title,
     required this.icon,
+    this.autoRouteDestination, // Used when AutoRoute is enabled
+    this.normalRouteDestination, // Used for normal navigation
+    this.onTap, // Custom logic if needed
   });
 }
