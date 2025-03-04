@@ -34,7 +34,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
 
   void _onDestinationSelected(int index) {
     if (widget.useAutoRoute) {
-      AutoRouteHelper.instance.setActiveIndex(context, index);
+      AutoRouteHelper.instance.pushRoute(context, widget.destinations[index].route);
     } else {
       setState(() {
         _selectedIndex = index;
@@ -49,9 +49,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   Widget build(BuildContext context) {
     if (widget.useAutoRoute) {
       return AutoRouteHelper.instance.wrapWithAutoTabsRouter(
-        routes: widget.destinations
-            .map((item) => item.route)
-            .toList(), // No PageRouteInfo reference
+        routes: widget.destinations.map((item) => item.route).toList(),
         builder: (context, child, controller) {
           final tabsRouter = AutoTabsRouter.of(context);
           return _buildScaffold(context, child, tabsRouter.activeIndex,

@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'auto_route_helper.dart';
 
 class AutoRouteHelperImpl extends AutoRouteHelper {
@@ -8,21 +8,15 @@ class AutoRouteHelperImpl extends AutoRouteHelper {
   }
 
   @override
-  Widget wrapWithAutoTabsRouter({
-    required List<dynamic> routes, // Use dynamic instead of PageRouteInfo
-    required Widget Function(BuildContext, Widget, TabsRouter) builder,
-  }) {
-    return AutoTabsRouter(
-        routes: routes.cast<PageRouteInfo>(), builder: builder);
-  }
-
-  @override
-  void setActiveIndex(BuildContext context, int index) {
-    AutoTabsRouter.of(context).setActiveIndex(index);
-  }
-
-  @override
-  int getActiveIndex(BuildContext context) {
-    return AutoTabsRouter.of(context).activeIndex;
+  void pushRoute(BuildContext context, dynamic route) {
+    if (route is PageRouteInfo) {
+      AutoRouter.of(context).push(route);
+    } else if (route is Widget) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => route));
+    } else if (route is String) {
+      Navigator.of(context).pushNamed(route);
+    } else {
+      throw Exception("Unsupported route type: ${route.runtimeType}");
+    }
   }
 }
