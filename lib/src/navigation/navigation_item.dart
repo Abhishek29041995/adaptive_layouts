@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:auto_route/auto_route.dart';
 
 class NavigationItem {
   final String title;
   final Widget icon; // Accepts any Widget (Icon or Image)
-  final String? autoRouteDestination; // For AutoRoute navigation
+  final PageRouteInfo<dynamic>? autoRouteDestination; // For AutoRoute navigation
   final Widget? normalRouteDestination; // For normal navigation
   final VoidCallback? onTap; // Custom callback
 

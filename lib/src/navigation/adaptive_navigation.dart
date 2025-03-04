@@ -27,7 +27,7 @@ class AdaptiveNavigation extends StatelessWidget {
     if (item.onTap != null) {
       item.onTap!();
     } else if (item.autoRouteDestination != null) {
-      AutoRouter.of(context).pushNamed(item.autoRouteDestination!);
+      AutoRouter.of(context).push(item.autoRouteDestination!);
     } else if (item.normalRouteDestination != null) {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => item.normalRouteDestination!),
