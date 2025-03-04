@@ -44,14 +44,16 @@ class AdaptiveNavigation extends StatelessWidget {
         return AdaptiveBottomNavigation(
           destinations: destinations,
           selectedIndex: selectedIndex,
-          onDestinationSelected: (index) => _onItemTapped(context, destinations[index]),
+          onDestinationSelected: (index) =>
+              _onItemTapped(context, destinations[index]),
         );
 
       case AdaptiveNavigationMode.rail:
         return AdaptiveNavigationRail(
           destinations: destinations,
           selectedIndex: selectedIndex,
-          onDestinationSelected: (index) => _onItemTapped(context, destinations[index]),
+          onDestinationSelected: (index) =>
+              _onItemTapped(context, destinations[index]),
         );
 
       case AdaptiveNavigationMode.sidebar:
@@ -60,7 +62,8 @@ class AdaptiveNavigation extends StatelessWidget {
             : AdaptiveSidebar(
                 destinations: destinations,
                 selectedIndex: selectedIndex,
-                onDestinationSelected: (index) => _onItemTapped(context, destinations[index]),
+                onDestinationSelected: (index) =>
+                    _onItemTapped(context, destinations[index]),
               );
 
       case AdaptiveNavigationMode.both:
@@ -69,13 +72,15 @@ class AdaptiveNavigation extends StatelessWidget {
             AdaptiveSidebar(
               destinations: destinations,
               selectedIndex: selectedIndex,
-              onDestinationSelected: (index) => _onItemTapped(context, destinations[index]),
+              onDestinationSelected: (index) =>
+                  _onItemTapped(context, destinations[index]),
             ),
             Expanded(
               child: AdaptiveBottomNavigation(
                 destinations: destinations,
                 selectedIndex: selectedIndex,
-                onDestinationSelected: (index) => _onItemTapped(context, destinations[index]),
+                onDestinationSelected: (index) =>
+                    _onItemTapped(context, destinations[index]),
               ),
             ),
           ],
@@ -87,13 +92,15 @@ class AdaptiveNavigation extends StatelessWidget {
           return AdaptiveBottomNavigation(
             destinations: destinations,
             selectedIndex: selectedIndex,
-            onDestinationSelected: (index) => _onItemTapped(context, destinations[index]),
+            onDestinationSelected: (index) =>
+                _onItemTapped(context, destinations[index]),
           );
         } else if (Responsive.isTablet(context)) {
           return AdaptiveNavigationRail(
             destinations: destinations,
             selectedIndex: selectedIndex,
-            onDestinationSelected: (index) => _onItemTapped(context, destinations[index]),
+            onDestinationSelected: (index) =>
+                _onItemTapped(context, destinations[index]),
           );
         } else {
           return isSidebarDrawer
@@ -101,7 +108,8 @@ class AdaptiveNavigation extends StatelessWidget {
               : AdaptiveSidebar(
                   destinations: destinations,
                   selectedIndex: selectedIndex,
-                  onDestinationSelected: (index) => _onItemTapped(context, destinations[index]),
+                  onDestinationSelected: (index) =>
+                      _onItemTapped(context, destinations[index]),
                 );
         }
     }

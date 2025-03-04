@@ -6,7 +6,8 @@ class NavigationItem {
   final Widget icon;
   final VoidCallback? onTap;
   final Widget? normalRouteDestination;
-  final dynamic autoRouteDestination; // Keep it dynamic to avoid dependency issues
+  final dynamic
+      autoRouteDestination; // Keep it dynamic to avoid dependency issues
 
   NavigationItem({
     required this.label,
