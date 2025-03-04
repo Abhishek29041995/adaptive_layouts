@@ -1,4 +1,5 @@
-import 'package:flutter/widgets.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
 
 abstract class AutoRouteHelper {
   static AutoRouteHelper? _instance;
@@ -15,4 +16,10 @@ abstract class AutoRouteHelper {
   }
 
   void pushRoute(BuildContext context, dynamic route);
+
+  /// Wraps with AutoTabsRouter for auto_route navigation.
+  Widget wrapWithAutoTabsRouter({
+    required List routes,
+    required Widget Function(BuildContext, Widget, TabsRouter) builder,
+  });
 }

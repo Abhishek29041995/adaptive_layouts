@@ -19,4 +19,18 @@ class AutoRouteHelperImpl extends AutoRouteHelper {
       throw Exception("Unsupported route type: ${route.runtimeType}");
     }
   }
+
+  @override
+  Widget wrapWithAutoTabsRouter({
+    required List routes,
+    required Widget Function(BuildContext, Widget, TabsRouter) builder,
+  }) {
+    return AutoTabsRouter(
+      routes: routes as List<PageRouteInfo>,
+      builder: (context, child) {
+        final tabsRouter = AutoTabsRouter.of(context);
+        return builder(context, child, tabsRouter);
+      },
+    );
+  }
 }

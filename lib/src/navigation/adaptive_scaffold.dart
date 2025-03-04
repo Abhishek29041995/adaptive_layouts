@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import '../navigation/navigation_item.dart';
 import '../navigation_mode.dart';
@@ -35,13 +36,15 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   void _onDestinationSelected(int index) {
     if (widget.useAutoRoute) {
       AutoRouteHelper.instance
-          .pushRoute(context, widget.destinations[index].route);
+          .pushRoute(context, widget.destinations[index].autoRouteDestination);
     } else {
       setState(() {
         _selectedIndex = index;
       });
-      widget.navigatorKey?.currentState?.pushReplacementNamed(
-        widget.destinations[index].routePath,
+      widget.navigatorKey?.currentState?.pushReplacement(
+        MaterialPageRoute(
+            builder: (context) =>
+                widget.destinations[index].normalRouteDestination!),
       );
     }
   }
@@ -50,7 +53,9 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   Widget build(BuildContext context) {
     if (widget.useAutoRoute) {
       return AutoRouteHelper.instance.wrapWithAutoTabsRouter(
-        routes: widget.destinations.map((item) => item.route).toList(),
+        routes: widget.destinations
+            .map((item) => item.autoRouteDestination)
+            .toList(),
         builder: (context, child, controller) {
           final tabsRouter = AutoTabsRouter.of(context);
           return _buildScaffold(context, child, tabsRouter.activeIndex,
@@ -66,10 +71,10 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
             return MaterialPageRoute(
               builder: (context) {
                 final route = widget.destinations.firstWhere(
-                  (item) => item.routePath == settings.name,
+                  (item) => item.autoRouteDestination == settings.name,
                   orElse: () => widget.destinations.first,
                 );
-                return route.screen;
+                return route.normalRouteDestination!;
               },
               settings: settings,
             );
