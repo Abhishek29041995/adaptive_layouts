@@ -31,12 +31,10 @@ class AdaptiveScaffold extends StatefulWidget {
 
 class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   int _selectedIndex = 0;
-  final AutoRouteHelper _autoRouteHelper =
-      AutoRouteHelperImpl(); // Uses correct version
 
   void _onDestinationSelected(int index) {
     if (widget.useAutoRoute) {
-      AutoTabsRouter.of(context).setActiveIndex(index);
+      AutoRouteHelper.instance.setActiveIndex(context, index);
     } else {
       setState(() {
         _selectedIndex = index;
@@ -50,12 +48,13 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   @override
   Widget build(BuildContext context) {
     if (widget.useAutoRoute) {
-      return _autoRouteHelper.wrapWithAutoTabsRouter(
+      return AutoRouteHelper.instance.wrapWithAutoTabsRouter(
         routes: widget.destinations.map((item) => item.route).toList(),
         builder: (context, child, controller) {
-          final tabsRouter = AutoTabsRouter.of(context);
-          return _buildScaffold(context, child, tabsRouter.activeIndex,
-              tabsRouter.setActiveIndex);
+          final int activeIndex =
+              AutoRouteHelper.instance.getActiveIndex(context);
+          return _buildScaffold(context, child, activeIndex,
+              AutoRouteHelper.instance.setActiveIndex);
         },
       );
     } else {

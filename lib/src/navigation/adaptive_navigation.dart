@@ -1,18 +1,20 @@
-import 'package:adaptive_layouts/src/navigation/navigation_item.dart';
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'navigation_item.dart';
 import '../navigation_mode.dart';
 import '../responsive/responsive_helper.dart';
 import 'bottom_navigation.dart';
 import 'navigation_rail.dart';
 import 'sidebar.dart';
+import 'auto_route_helper.dart'
+    if (dart.library.io) 'auto_route_helper_impl.dart'
+    if (dart.library.html) 'auto_route_helper_fallback.dart';
 
 class AdaptiveNavigation extends StatelessWidget {
   final List<NavigationItem> destinations;
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
   final AdaptiveNavigationMode mode;
-  final bool isSidebarDrawer; // To handle sidebar as a drawer
+  final bool isSidebarDrawer;
 
   const AdaptiveNavigation({
     super.key,
@@ -27,7 +29,7 @@ class AdaptiveNavigation extends StatelessWidget {
     if (item.onTap != null) {
       item.onTap!();
     } else if (item.autoRouteDestination != null) {
-      AutoRouter.of(context).push(item.autoRouteDestination!);
+      AutoRouteHelper.instance.pushRoute(context, item.autoRouteDestination);
     } else if (item.normalRouteDestination != null) {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => item.normalRouteDestination!),
@@ -54,7 +56,7 @@ class AdaptiveNavigation extends StatelessWidget {
 
       case AdaptiveNavigationMode.sidebar:
         return isSidebarDrawer
-            ? const SizedBox() // Hide Sidebar if used as a drawer
+            ? const SizedBox()
             : AdaptiveSidebar(
                 destinations: destinations,
                 selectedIndex: selectedIndex,
@@ -95,7 +97,7 @@ class AdaptiveNavigation extends StatelessWidget {
           );
         } else {
           return isSidebarDrawer
-              ? const SizedBox() // Hide Sidebar if used as a drawer
+              ? const SizedBox()
               : AdaptiveSidebar(
                   destinations: destinations,
                   selectedIndex: selectedIndex,
