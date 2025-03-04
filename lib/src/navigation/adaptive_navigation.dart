@@ -11,6 +11,7 @@ class AdaptiveNavigation extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
   final AdaptiveNavigationMode mode;
+  final bool isSidebarDrawer; // To handle sidebar as a drawer
 
   const AdaptiveNavigation({
     super.key,
@@ -18,6 +19,7 @@ class AdaptiveNavigation extends StatelessWidget {
     required this.selectedIndex,
     required this.onDestinationSelected,
     this.mode = AdaptiveNavigationMode.auto,
+    this.isSidebarDrawer = false,
   });
 
   @override
@@ -38,11 +40,13 @@ class AdaptiveNavigation extends StatelessWidget {
         );
 
       case AdaptiveNavigationMode.sidebar:
-        return AdaptiveSidebar(
-          destinations: destinations,
-          selectedIndex: selectedIndex,
-          onDestinationSelected: onDestinationSelected,
-        );
+        return isSidebarDrawer
+            ? const SizedBox() // Hide Sidebar if used as a drawer
+            : AdaptiveSidebar(
+                destinations: destinations,
+                selectedIndex: selectedIndex,
+                onDestinationSelected: onDestinationSelected,
+              );
 
       case AdaptiveNavigationMode.both:
         return Row(
@@ -77,11 +81,13 @@ class AdaptiveNavigation extends StatelessWidget {
             onDestinationSelected: onDestinationSelected,
           );
         } else {
-          return AdaptiveSidebar(
-            destinations: destinations,
-            selectedIndex: selectedIndex,
-            onDestinationSelected: onDestinationSelected,
-          );
+          return isSidebarDrawer
+              ? const SizedBox() // Hide Sidebar if used as a drawer
+              : AdaptiveSidebar(
+                  destinations: destinations,
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: onDestinationSelected,
+                );
         }
     }
   }
