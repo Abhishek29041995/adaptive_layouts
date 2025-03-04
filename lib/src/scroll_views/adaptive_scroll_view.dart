@@ -22,6 +22,7 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
   final double crossAxisSpacing;
   final double mainAxisSpacing;
   final double childAspectRatio;
+  final bool gridViewOnly;
 
   const AdaptiveScrollView({
     super.key,
@@ -43,6 +44,7 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
     this.crossAxisSpacing = 10.0,
     this.mainAxisSpacing = 10.0,
     this.childAspectRatio = 1.5,
+    this.gridViewOnly = false,
   });
 
   @override
@@ -54,24 +56,7 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
     if (!isLoading && items.isEmpty) {
       return noRecordFoundWidget; // ✅ Show empty state widget
     }
-
-    if (Responsive.isMobile(context) || Responsive.isTablet(context)) {
-      return ScrollList<G, T>(
-        isLoading: isLoading,
-        items: items,
-        groupedItems: groupedItems,
-        itemBuilder: itemBuilder,
-        groupHeaderBuilder: groupHeaderBuilder,
-        groupTitleBuilder: groupTitleBuilder,
-        controller: controller,
-        loadingWidget: loadingWidget, // ✅ Pass to ScrollList
-        noRecordFoundWidget: noRecordFoundWidget, // ✅ Pass to ScrollList
-        onRefresh: onRefresh,
-        onLoadingMore: onLoadingMore,
-        header: header,
-        isGrouped: groupedItems.isNotEmpty,
-      );
-    } else {
+    if (gridViewOnly || !Responsive.isMobile(context)) {
       return ScrollableGridView<G, T>(
         isLoading: isLoading,
         items: items,
@@ -89,6 +74,22 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
         crossAxisSpacing: crossAxisSpacing,
         mainAxisSpacing: mainAxisSpacing,
         childAspectRatio: childAspectRatio,
+      );
+    } else {
+      return ScrollList<G, T>(
+        isLoading: isLoading,
+        items: items,
+        groupedItems: groupedItems,
+        itemBuilder: itemBuilder,
+        groupHeaderBuilder: groupHeaderBuilder,
+        groupTitleBuilder: groupTitleBuilder,
+        controller: controller,
+        loadingWidget: loadingWidget, // ✅ Pass to ScrollList
+        noRecordFoundWidget: noRecordFoundWidget, // ✅ Pass to ScrollList
+        onRefresh: onRefresh,
+        onLoadingMore: onLoadingMore,
+        header: header,
+        isGrouped: groupedItems.isNotEmpty,
       );
     }
   }
