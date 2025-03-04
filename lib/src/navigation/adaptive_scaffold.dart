@@ -1,9 +1,13 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'adaptive_navigation.dart';
 import '../navigation/navigation_item.dart';
 import '../navigation_mode.dart';
 import '../responsive/responsive_helper.dart';
+import 'adaptive_navigation.dart';
+
+// Use conditional import to load the correct implementation
+import '../navigation/auto_route_helper.dart'
+    if (dart.library.io) '../navigation/auto_route_helper_impl.dart'
+    if (dart.library.html) '../navigation/auto_route_helper_stub.dart';
 
 class AdaptiveScaffold extends StatefulWidget {
   final List<NavigationItem> destinations;
@@ -27,6 +31,8 @@ class AdaptiveScaffold extends StatefulWidget {
 
 class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   int _selectedIndex = 0;
+  final AutoRouteHelper _autoRouteHelper =
+      AutoRouteHelperImpl(); // Uses correct version
 
   void _onDestinationSelected(int index) {
     if (widget.useAutoRoute) {
@@ -35,22 +41,21 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
       setState(() {
         _selectedIndex = index;
       });
-      if (widget.navigatorKey?.currentState != null) {
-        widget.navigatorKey!.currentState!.pushReplacementNamed(
-          widget.destinations[index].routePath,
-        );
-      }
+      widget.navigatorKey?.currentState?.pushReplacementNamed(
+        widget.destinations[index].routePath,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.useAutoRoute) {
-      return AutoTabsRouter(
+      return _autoRouteHelper.wrapWithAutoTabsRouter(
         routes: widget.destinations.map((item) => item.route).toList(),
         builder: (context, child, controller) {
           final tabsRouter = AutoTabsRouter.of(context);
-          return _buildScaffold(context, child, tabsRouter.activeIndex, tabsRouter.setActiveIndex);
+          return _buildScaffold(context, child, tabsRouter.activeIndex,
+              tabsRouter.setActiveIndex);
         },
       );
     } else {
@@ -77,10 +82,12 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
     }
   }
 
-  Widget _buildScaffold(BuildContext context, Widget child, int index, ValueChanged<int> onSelect) {
+  Widget _buildScaffold(BuildContext context, Widget child, int index,
+      ValueChanged<int> onSelect) {
     final bool isLargeScreen = Responsive.isDesktop(context);
     final bool useSidebarDrawer =
-        widget.navigationMode == AdaptiveNavigationMode.sidebar && isLargeScreen;
+        widget.navigationMode == AdaptiveNavigationMode.sidebar &&
+            isLargeScreen;
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
