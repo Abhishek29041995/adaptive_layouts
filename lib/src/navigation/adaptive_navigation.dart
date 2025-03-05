@@ -5,7 +5,6 @@ import '../responsive/responsive_helper.dart';
 import '../navigation/bottom_navigation.dart';
 import '../navigation/navigation_rail.dart';
 import '../navigation/sidebar.dart';
-import '../navigation/auto_route_helper.dart';
 
 class AdaptiveNavigation extends StatelessWidget {
   final List<NavigationItem> destinations;
@@ -23,16 +22,6 @@ class AdaptiveNavigation extends StatelessWidget {
     this.isSidebarDrawer = false,
   });
 
-  void _onItemTapped(BuildContext context, NavigationItem item) {
-    if (item.onTap != null) {
-      item.onTap!();
-    } else if (item.autoRouteDestination != null) {
-      AutoRouteHelper.instance.pushRoute(context, item.autoRouteDestination);
-    } else if (item.normalRouteDestination != null) {
-      AutoRouteHelper.instance.pushRoute(context, item.normalRouteDestination);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     switch (mode) {
@@ -40,16 +29,14 @@ class AdaptiveNavigation extends StatelessWidget {
         return AdaptiveBottomNavigation(
           destinations: destinations,
           selectedIndex: selectedIndex,
-          onDestinationSelected: (index) =>
-              _onItemTapped(context, destinations[index]),
+          onDestinationSelected: onDestinationSelected, // ✅ Directly calling
         );
 
       case AdaptiveNavigationMode.rail:
         return AdaptiveNavigationRail(
           destinations: destinations,
           selectedIndex: selectedIndex,
-          onDestinationSelected: (index) =>
-              _onItemTapped(context, destinations[index]),
+          onDestinationSelected: onDestinationSelected, // ✅ Directly calling
         );
 
       case AdaptiveNavigationMode.sidebar:
@@ -58,8 +45,8 @@ class AdaptiveNavigation extends StatelessWidget {
             : AdaptiveSidebar(
                 destinations: destinations,
                 selectedIndex: selectedIndex,
-                onDestinationSelected: (index) =>
-                    _onItemTapped(context, destinations[index]),
+                onDestinationSelected:
+                    onDestinationSelected, // ✅ Directly calling
               );
 
       case AdaptiveNavigationMode.both:
@@ -68,15 +55,15 @@ class AdaptiveNavigation extends StatelessWidget {
             AdaptiveSidebar(
               destinations: destinations,
               selectedIndex: selectedIndex,
-              onDestinationSelected: (index) =>
-                  _onItemTapped(context, destinations[index]),
+              onDestinationSelected:
+                  onDestinationSelected, // ✅ Directly calling
             ),
             Expanded(
               child: AdaptiveBottomNavigation(
                 destinations: destinations,
                 selectedIndex: selectedIndex,
-                onDestinationSelected: (index) =>
-                    _onItemTapped(context, destinations[index]),
+                onDestinationSelected:
+                    onDestinationSelected, // ✅ Directly calling
               ),
             ),
           ],
@@ -88,15 +75,13 @@ class AdaptiveNavigation extends StatelessWidget {
           return AdaptiveBottomNavigation(
             destinations: destinations,
             selectedIndex: selectedIndex,
-            onDestinationSelected: (index) =>
-                _onItemTapped(context, destinations[index]),
+            onDestinationSelected: onDestinationSelected, // ✅ Directly calling
           );
         } else if (Responsive.isTablet(context)) {
           return AdaptiveNavigationRail(
             destinations: destinations,
             selectedIndex: selectedIndex,
-            onDestinationSelected: (index) =>
-                _onItemTapped(context, destinations[index]),
+            onDestinationSelected: onDestinationSelected, // ✅ Directly calling
           );
         } else {
           return isSidebarDrawer
@@ -104,8 +89,8 @@ class AdaptiveNavigation extends StatelessWidget {
               : AdaptiveSidebar(
                   destinations: destinations,
                   selectedIndex: selectedIndex,
-                  onDestinationSelected: (index) =>
-                      _onItemTapped(context, destinations[index]),
+                  onDestinationSelected:
+                      onDestinationSelected, // ✅ Directly calling
                 );
         }
     }
