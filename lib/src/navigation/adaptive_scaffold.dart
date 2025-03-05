@@ -12,6 +12,7 @@ class AdaptiveScaffold extends StatefulWidget {
   final String title;
   final bool useAutoRoute;
   final GlobalKey<NavigatorState>? navigatorKey;
+  final Widget? child; // ✅ Added child parameter
 
   const AdaptiveScaffold({
     super.key,
@@ -20,6 +21,7 @@ class AdaptiveScaffold extends StatefulWidget {
     this.title = '',
     this.useAutoRoute = true,
     this.navigatorKey,
+    this.child, // ✅ Added this
   });
 
   @override
@@ -61,21 +63,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
     } else {
       return _buildScaffold(
         context,
-        Navigator(
-          key: widget.navigatorKey,
-          onGenerateRoute: (settings) {
-            return MaterialPageRoute(
-              builder: (context) {
-                final route = widget.destinations.firstWhere(
-                  (item) => item.autoRouteDestination == settings.name,
-                  orElse: () => widget.destinations.first,
-                );
-                return route.normalRouteDestination!;
-              },
-              settings: settings,
-            );
-          },
-        ),
+        widget.child ?? const SizedBox(), // ✅ Ensure child is handled correctly
         _selectedIndex,
         _onDestinationSelected,
       );
@@ -86,8 +74,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
       ValueChanged<int> onSelect) {
     final bool isLargeScreen = Responsive.isDesktop(context);
     final bool useSidebarDrawer =
-        widget.navigationMode == AdaptiveNavigationMode.sidebar &&
-            isLargeScreen;
+        widget.navigationMode == AdaptiveNavigationMode.sidebar && isLargeScreen;
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
@@ -111,7 +98,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
               onDestinationSelected: onSelect,
               mode: widget.navigationMode,
             ),
-          Expanded(child: child),
+          Expanded(child: widget.child ?? child), // ✅ Display the passed child
         ],
       ),
       bottomNavigationBar: Responsive.isMobile(context) ||
