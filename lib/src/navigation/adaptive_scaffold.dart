@@ -7,16 +7,16 @@ import '../navigation/adaptive_navigation.dart';
 class AdaptiveScaffold extends StatefulWidget {
   final List<NavigationItem> destinations;
   final AdaptiveNavigationMode navigationMode;
-  final String title;
-  final Widget body;
+  final List<Widget> pages;
+  final PreferredSizeWidget? appBar;
   final Widget? floatingActionButton;
 
   const AdaptiveScaffold({
     super.key,
+    this.appBar,
     required this.destinations,
     this.navigationMode = AdaptiveNavigationMode.auto,
-    this.title = '',
-    required this.body,
+    required this.pages,
     this.floatingActionButton,
   });
 
@@ -37,11 +37,13 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   Widget build(BuildContext context) {
     final bool isLargeScreen = Responsive.isDesktop(context);
     final bool isTablet = Responsive.isTablet(context);
-    final bool useSidebar = widget.navigationMode == AdaptiveNavigationMode.sidebar && isLargeScreen;
-    final bool useBothNavigation = widget.navigationMode == AdaptiveNavigationMode.both && isTablet;
+    final bool useSidebar =
+        widget.navigationMode == AdaptiveNavigationMode.sidebar && isLargeScreen;
+    final bool useBothNavigation =
+        widget.navigationMode == AdaptiveNavigationMode.both && isTablet;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: widget.appBar,
       drawer: useSidebar
           ? Drawer(
               child: AdaptiveNavigation(
@@ -62,9 +64,10 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
               onDestinationSelected: _onDestinationSelected,
               mode: AdaptiveNavigationMode.sidebar,
             ),
-          Expanded(child: widget.body),
+          Expanded(child: widget.pages[_selectedIndex]), // Dynamic content switching
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // Ensure correct positioning
       floatingActionButton: widget.floatingActionButton,
       bottomNavigationBar: (Responsive.isMobile(context) ||
               widget.navigationMode == AdaptiveNavigationMode.bottom ||
