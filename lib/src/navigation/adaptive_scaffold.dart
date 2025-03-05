@@ -50,7 +50,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
     if (widget.useAutoRoute) {
       return AutoRouteHelper.instance.wrapWithAutoTabsRouter(
         routes: widget.destinations
-            .map((item) => item.autoRouteDestination)
+            .map<PageRouteInfo>((item) => item.autoRouteDestination)
             .toList(),
         builder: (context, child, controller) {
           final tabsRouter = AutoTabsRouter.of(context);

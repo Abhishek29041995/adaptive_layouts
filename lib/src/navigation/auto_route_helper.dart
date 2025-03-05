@@ -19,7 +19,7 @@ abstract class AutoRouteHelper {
 
   /// Wraps with AutoTabsRouter for auto_route navigation.
   Widget wrapWithAutoTabsRouter({
-    required List routes,
+    required List<PageRouteInfo> routes,
     required Widget Function(BuildContext, Widget, TabsRouter) builder,
   });
 }

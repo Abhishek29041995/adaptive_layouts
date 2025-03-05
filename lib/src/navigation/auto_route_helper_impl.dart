@@ -22,11 +22,11 @@ class AutoRouteHelperImpl extends AutoRouteHelper {
 
   @override
   Widget wrapWithAutoTabsRouter({
-    required List routes,
+    required List<PageRouteInfo> routes,
     required Widget Function(BuildContext, Widget, TabsRouter) builder,
   }) {
     return AutoTabsRouter(
-      routes: routes as List<PageRouteInfo>,
+      routes: routes,
       builder: (context, child) {
         final tabsRouter = AutoTabsRouter.of(context);
         return builder(context, child, tabsRouter);
