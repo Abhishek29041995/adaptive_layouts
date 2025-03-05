@@ -7,17 +7,21 @@ import '../navigation/adaptive_navigation.dart';
 class AdaptiveScaffold extends StatefulWidget {
   final List<NavigationItem> destinations;
   final AdaptiveNavigationMode navigationMode;
-  final List<Widget> pages;
+  final Widget child;
   final PreferredSizeWidget? appBar;
   final Widget? floatingActionButton;
+  final int? externalIndex; // For external tab control (AutoTabsRouter)
+  final void Function(int)? onTabChange; // Callback for tab changes
 
   const AdaptiveScaffold({
     super.key,
     this.appBar,
     required this.destinations,
     this.navigationMode = AdaptiveNavigationMode.auto,
-    required this.pages,
+    required this.child,
     this.floatingActionButton,
+    this.externalIndex,
+    this.onTabChange,
   });
 
   @override
@@ -27,20 +31,28 @@ class AdaptiveScaffold extends StatefulWidget {
 class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.externalIndex ?? 0; // Use external index if provided
+  }
+
   void _onDestinationSelected(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (widget.onTabChange != null) {
+      widget.onTabChange!(index); // Notify parent (for AutoTabsRouter)
+    } else {
+      setState(() {
+        _selectedIndex = index; // Normal tab change
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isLargeScreen = Responsive.isDesktop(context);
     final bool isTablet = Responsive.isTablet(context);
-    final bool useSidebar =
-        widget.navigationMode == AdaptiveNavigationMode.sidebar && isLargeScreen;
-    final bool useBothNavigation =
-        widget.navigationMode == AdaptiveNavigationMode.both && isTablet;
+    final bool useSidebar = widget.navigationMode == AdaptiveNavigationMode.sidebar && isLargeScreen;
+    final bool useBothNavigation = widget.navigationMode == AdaptiveNavigationMode.both && isTablet;
 
     return Scaffold(
       appBar: widget.appBar,
@@ -48,7 +60,7 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
           ? Drawer(
               child: AdaptiveNavigation(
                 destinations: widget.destinations,
-                selectedIndex: _selectedIndex,
+                selectedIndex: widget.externalIndex ?? _selectedIndex,
                 onDestinationSelected: _onDestinationSelected,
                 mode: widget.navigationMode,
                 isSidebarDrawer: true,
@@ -60,21 +72,21 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
           if (widget.navigationMode == AdaptiveNavigationMode.sidebar || useBothNavigation)
             AdaptiveNavigation(
               destinations: widget.destinations,
-              selectedIndex: _selectedIndex,
+              selectedIndex: widget.externalIndex ?? _selectedIndex,
               onDestinationSelected: _onDestinationSelected,
               mode: AdaptiveNavigationMode.sidebar,
             ),
-          Expanded(child: widget.pages[_selectedIndex]), // Dynamic content switching
+          Expanded(child: widget.child),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // Ensure correct positioning
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: widget.floatingActionButton,
       bottomNavigationBar: (Responsive.isMobile(context) ||
               widget.navigationMode == AdaptiveNavigationMode.bottom ||
               useBothNavigation)
           ? AdaptiveNavigation(
               destinations: widget.destinations,
-              selectedIndex: _selectedIndex,
+              selectedIndex: widget.externalIndex ?? _selectedIndex,
               onDestinationSelected: _onDestinationSelected,
               mode: AdaptiveNavigationMode.bottom,
             )
