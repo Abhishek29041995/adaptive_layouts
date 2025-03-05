@@ -4,11 +4,7 @@ import '../navigation/navigation_item.dart';
 import '../navigation_mode.dart';
 import '../responsive/responsive_helper.dart';
 import 'adaptive_navigation.dart';
-
-// Use conditional import to load the correct implementation
-import '../navigation/auto_route_helper.dart'
-    if (dart.library.io) '../navigation/auto_route_helper_impl.dart'
-    if (dart.library.html) '../navigation/auto_route_helper_fallback.dart';
+import '../navigation/auto_route_helper.dart';
 
 class AdaptiveScaffold extends StatefulWidget {
   final List<NavigationItem> destinations;
