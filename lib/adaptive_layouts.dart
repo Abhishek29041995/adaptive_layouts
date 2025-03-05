@@ -9,7 +9,5 @@ export 'src/navigation/adaptive_scaffold.dart';
 export 'src/navigation/navigation_item.dart';
 export 'src/navigation/auto_route_helper_impl.dart';
 
-// Conditional import for AutoRouteHelper
-export 'src/navigation/auto_route_helper.dart'
-    if (dart.library.io) 'src/navigation/auto_route_helper_impl.dart'
-    if (dart.library.html) 'src/navigation/auto_route_helper_fallback.dart';
+
+export 'src/navigation/auto_route_helper.dart';
