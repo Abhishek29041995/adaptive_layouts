@@ -12,7 +12,9 @@ class AdaptiveScaffold extends StatefulWidget {
   final String title;
   final bool useAutoRoute;
   final GlobalKey<NavigatorState>? navigatorKey;
-  final Widget? child; // ✅ Added child parameter
+  final Widget? body; // ✅ Replaced `child` with `body`
+  final PreferredSizeWidget? appBar; // ✅ Allow custom app bar
+  final Widget? floatingActionButton; // ✅ Allow FAB
 
   const AdaptiveScaffold({
     super.key,
@@ -21,7 +23,9 @@ class AdaptiveScaffold extends StatefulWidget {
     this.title = '',
     this.useAutoRoute = true,
     this.navigatorKey,
-    this.child, // ✅ Added this
+    this.body, // ✅ New body parameter
+    this.appBar, // ✅ New appBar parameter
+    this.floatingActionButton, // ✅ New FAB parameter
   });
 
   @override
@@ -63,21 +67,21 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
     } else {
       return _buildScaffold(
         context,
-        widget.child ?? const SizedBox(), // ✅ Ensure child is handled correctly
+        widget.body ?? const SizedBox(), // ✅ Use `body` instead of `child`
         _selectedIndex,
         _onDestinationSelected,
       );
     }
   }
 
-  Widget _buildScaffold(BuildContext context, Widget child, int index,
+  Widget _buildScaffold(BuildContext context, Widget body, int index,
       ValueChanged<int> onSelect) {
     final bool isLargeScreen = Responsive.isDesktop(context);
     final bool useSidebarDrawer =
         widget.navigationMode == AdaptiveNavigationMode.sidebar && isLargeScreen;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: widget.appBar ?? AppBar(title: Text(widget.title)), // ✅ Use custom app bar
       drawer: useSidebarDrawer
           ? Drawer(
               child: AdaptiveNavigation(
@@ -98,9 +102,10 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
               onDestinationSelected: onSelect,
               mode: widget.navigationMode,
             ),
-          Expanded(child: widget.child ?? child), // ✅ Display the passed child
+          Expanded(child: widget.body ?? body), // ✅ Display the passed body
         ],
       ),
+      floatingActionButton: widget.floatingActionButton, // ✅ Support FAB
       bottomNavigationBar: Responsive.isMobile(context) ||
               widget.navigationMode == AdaptiveNavigationMode.bottom
           ? AdaptiveNavigation(
