@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'auto_route_helper.dart';
+import '../navigation/auto_route_helper.dart';
 
 class AutoRouteHelperImpl extends AutoRouteHelper {
   AutoRouteHelperImpl() {

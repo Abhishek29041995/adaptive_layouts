@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'navigation_item.dart';
+import '../navigation/navigation_item.dart';
 import '../navigation_mode.dart';
 import '../responsive/responsive_helper.dart';
-import 'bottom_navigation.dart';
-import 'navigation_rail.dart';
-import 'sidebar.dart';
-import 'auto_route_helper.dart'
-    if (dart.library.io) 'auto_route_helper_impl.dart'
-    if (dart.library.html) 'auto_route_helper_fallback.dart';
+import '../navigation/bottom_navigation.dart';
+import '../navigation/navigation_rail.dart';
+import '../navigation/sidebar.dart';
+import '../navigation/auto_route_helper.dart';
 
 class AdaptiveNavigation extends StatelessWidget {
   final List<NavigationItem> destinations;

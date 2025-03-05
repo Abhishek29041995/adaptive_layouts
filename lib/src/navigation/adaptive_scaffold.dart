@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../navigation/navigation_item.dart';
 import '../navigation_mode.dart';
 import '../responsive/responsive_helper.dart';
-import 'adaptive_navigation.dart';
+import '../navigation/adaptive_navigation.dart';
 import '../navigation/auto_route_helper.dart';
 
 class AdaptiveScaffold extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'navigation_item.dart';
+import '../navigation/navigation_item.dart';
 
 class AdaptiveNavigationRail extends StatelessWidget {
   final List<NavigationItem> destinations;
