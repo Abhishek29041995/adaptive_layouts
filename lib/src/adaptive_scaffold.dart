@@ -58,6 +58,7 @@ class AdaptiveScaffold extends StatelessWidget {
       bottomNavigationBar:
           (!isDesktop && !isTablet) ? bottomNavigationBar : null,
       floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomSheet: bottomSheet,
     );
   }
