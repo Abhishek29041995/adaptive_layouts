@@ -43,27 +43,35 @@ class AdaptiveScaffold extends StatelessWidget {
       appBar: appBar,
       drawer: !isDesktop ? drawer : null,
       endDrawer: !isDesktop ? endDrawer : null,
-      body: Row(
+      body: Stack(
         children: [
-          if (isDesktop && drawer != null) SizedBox(width: 250, child: drawer),
-          if ((isTablet || (isMobile && isLandscape)) &&
-              navigationRailDestinations != null)
-            NavigationRail(
-              selectedIndex: currentIndex,
-              onDestinationSelected: onTap,
-              labelType: NavigationRailLabelType.selected,
-              destinations: navigationRailDestinations!,
-            ),
-          Expanded(child: body!),
-          if (isDesktop && endDrawer != null)
-            SizedBox(width: 250, child: endDrawer),
+          Row(
+            children: [
+              if (isDesktop && drawer != null)
+                SizedBox(width: 250, child: drawer),
+              if ((isTablet || (isMobile && isLandscape)) &&
+                  navigationRailDestinations != null)
+                NavigationRail(
+                  selectedIndex: currentIndex,
+                  onDestinationSelected: onTap,
+                  labelType: NavigationRailLabelType.selected,
+                  destinations: navigationRailDestinations!,
+                ),
+              Expanded(child: body!),
+              if (isDesktop && endDrawer != null)
+                SizedBox(width: 250, child: endDrawer),
+            ],
+          ),
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: floatingActionButton ?? const SizedBox.shrink(),
+          ),
         ],
       ),
       bottomNavigationBar: (!isDesktop && !(isTablet && isLandscape))
           ? bottomNavigationBar
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: floatingActionButton,
       bottomSheet: bottomSheet,
     );
   }
