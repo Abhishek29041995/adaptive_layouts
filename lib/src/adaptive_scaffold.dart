@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../src/responsive/responsive_helper.dart';
-
 class AdaptiveScaffold extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget? floatingActionButton;
@@ -31,42 +30,33 @@ class AdaptiveScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final breakpoint = Responsive.currentBreakpoint(context);
     final bool isTablet = breakpoint == Breakpoint.tablet;
-    final bool isDesktop = breakpoint == Breakpoint.desktop ||
-        breakpoint == Breakpoint.web ||
-        breakpoint == Breakpoint.xl ||
-        breakpoint == Breakpoint.xxl;
+    final bool isMobile = breakpoint == Breakpoint.mobile;
+    final bool isDesktop = breakpoint == Breakpoint.desktop || breakpoint == Breakpoint.web || breakpoint == Breakpoint.xl || breakpoint == Breakpoint.xxl;
+    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       appBar: appBar,
       drawer: !isDesktop ? drawer : null,
       endDrawer: !isDesktop ? endDrawer : null,
-      body: Stack(
+      body: Row(
         children: [
-          Row(
-            children: [
-              if (isDesktop && drawer != null)
-                SizedBox(width: 250, child: drawer),
-              if (isTablet && navigationRailDestinations != null)
-                NavigationRail(
-                  selectedIndex: currentIndex,
-                  onDestinationSelected: onTap,
-                  labelType: NavigationRailLabelType.selected,
-                  destinations: navigationRailDestinations!,
-                ),
-              Expanded(child: body!),
-              if (isDesktop && endDrawer != null)
-                SizedBox(width: 250, child: endDrawer),
-            ],
-          ),
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: floatingActionButton ?? const SizedBox.shrink(),
-          ),
+          if (isDesktop && drawer != null)
+            SizedBox(width: 250, child: drawer),
+          if ((isTablet || (isMobile && isLandscape)) && navigationRailDestinations != null)
+            NavigationRail(
+              selectedIndex: currentIndex,
+              onDestinationSelected: onTap,
+              labelType: NavigationRailLabelType.selected,
+              destinations: navigationRailDestinations!,
+            ),
+          Expanded(child: body!),
+          if (isDesktop && endDrawer != null)
+            SizedBox(width: 250, child: endDrawer),
         ],
       ),
-      bottomNavigationBar:
-          (!isDesktop && !isTablet) ? bottomNavigationBar : null,
+      bottomNavigationBar: (!isDesktop && !(isTablet && isLandscape)) ? bottomNavigationBar : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: floatingActionButton,
       bottomSheet: bottomSheet,
     );
   }
