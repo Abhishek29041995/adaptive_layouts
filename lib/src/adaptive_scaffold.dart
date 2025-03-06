@@ -49,7 +49,7 @@ class AdaptiveScaffold extends StatelessWidget {
             children: [
               if (isDesktop && drawer != null)
                 SizedBox(width: 250, child: drawer),
-              if ((isTablet || (isMobile && isLandscape)) &&
+              if ((isDesktop || isTablet || (isMobile && isLandscape)) &&
                   navigationRailDestinations != null)
                 NavigationRail(
                   selectedIndex: currentIndex,
