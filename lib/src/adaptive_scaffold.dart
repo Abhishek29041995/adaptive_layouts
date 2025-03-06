@@ -41,35 +41,32 @@ class AdaptiveScaffold extends StatelessWidget {
       drawer: !isDesktop ? drawer : null,
       endDrawer: !isDesktop ? endDrawer : null,
       body: Stack(
-  children: [
-    Row(
-      children: [
-        if (isDesktop && drawer != null) 
-          SizedBox(width: 250, child: drawer),
-        if (isTablet && navigationRailDestinations != null)
-          NavigationRail(
-            selectedIndex: currentIndex,
-            onDestinationSelected: onTap,
-            labelType: NavigationRailLabelType.selected,
-            destinations: navigationRailDestinations!,
+        children: [
+          Row(
+            children: [
+              if (isDesktop && drawer != null)
+                SizedBox(width: 250, child: drawer),
+              if (isTablet && navigationRailDestinations != null)
+                NavigationRail(
+                  selectedIndex: currentIndex,
+                  onDestinationSelected: onTap,
+                  labelType: NavigationRailLabelType.selected,
+                  destinations: navigationRailDestinations!,
+                ),
+              Expanded(child: body!),
+              if (isDesktop && endDrawer != null)
+                SizedBox(width: 250, child: endDrawer),
+            ],
           ),
-        Expanded(child: body!),
-        if (isDesktop && endDrawer != null)
-          SizedBox(width: 250, child: endDrawer),
-      ],
-    ),
-    Positioned(
-      right: 16,
-      bottom: 16,
-      child: floatingActionButton ?? const SizedBox.shrink(),
-    ),
-  ],
-),
-
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: floatingActionButton ?? const SizedBox.shrink(),
+          ),
+        ],
+      ),
       bottomNavigationBar:
           (!isDesktop && !isTablet) ? bottomNavigationBar : null,
-      // floatingActionButton: floatingActionButton,
-      // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomSheet: bottomSheet,
     );
   }
