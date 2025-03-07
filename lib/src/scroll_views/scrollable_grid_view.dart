@@ -70,40 +70,47 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
   Widget build(BuildContext context) {
     return widget.isLoading && widget.items.isEmpty
         ? widget.loadingWidget
-        : RefreshIndicator(
-            onRefresh: () async => widget.onRefresh?.call(),
-            child: CustomScrollView(
-              controller: _controller,
-              slivers: widget.isGrouped
-                  ? _buildGroupedGrid()
-                  : _buildNormalGrid(), // ✅ Now supports normal grid too
-            ),
-          );
+        :LayoutBuilder(
+          builder: (context, constraints) {
+            return RefreshIndicator(
+                onRefresh: () async => widget.onRefresh?.call(),
+                child: CustomScrollView(
+                  controller: _controller,
+                  slivers: widget.isGrouped
+                      ? _buildGroupedGrid()
+                      : _buildNormalGrid(), // ✅ Now supports normal grid too
+                ),
+              );
+          }
+        );
   }
 
   /// ✅ **Normal Grid View (Non-Grouped Data)**
-  List<Widget> _buildNormalGrid() {
-    return [
-      SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        sliver: SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: widget.crossAxisCount,
-            crossAxisSpacing: widget.crossAxisSpacing,
-            mainAxisSpacing: widget.mainAxisSpacing,
-            childAspectRatio: widget.childAspectRatio,
-          ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final item = widget.items[index];
-              return widget.itemBuilder(context, index, item);
-            },
-            childCount: widget.items.length,
-          ),
+List<Widget> _buildNormalGrid() {
+  final itemCount = widget.items.length;
+  final crossAxisCount = itemCount < widget.crossAxisCount ? itemCount : widget.crossAxisCount;
+
+  return [
+    SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      sliver: SliverGrid(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount, // ✅ Adjust dynamically
+          crossAxisSpacing: widget.crossAxisSpacing,
+          mainAxisSpacing: widget.mainAxisSpacing,
+          childAspectRatio: widget.childAspectRatio,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final item = widget.items[index];
+            return widget.itemBuilder(context, index, item);
+          },
+          childCount: itemCount, // ✅ Uses user-defined items count
         ),
       ),
-    ];
-  }
+    ),
+  ];
+}
 
   /// ✅ **Grouped Grid View**
   List<Widget> _buildGroupedGrid() {
