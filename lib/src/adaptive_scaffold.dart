@@ -69,9 +69,11 @@ class AdaptiveScaffold extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: (!isDesktop && !(isTablet && isLandscape))
-          ? bottomNavigationBar
-          : null,
+      bottomNavigationBar:
+          !((isDesktop || isTablet || (isMobile && isLandscape)) &&
+                  navigationRailDestinations != null)
+              ? bottomNavigationBar
+              : null,
       bottomSheet: bottomSheet,
     );
   }
