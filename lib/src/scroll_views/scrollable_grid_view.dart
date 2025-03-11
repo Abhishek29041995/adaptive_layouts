@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:adaptive_layouts/src/scroll_views/group_item.dart';
+import 'group_item.dart';
+import 'dynamic_height_grid_view.dart';
 
 class ScrollableGridView<G, T> extends StatefulWidget {
   final VoidCallback? onRefresh;
   final VoidCallback? onLoadingMore;
   final bool isLoading;
-  final bool isLoadingMore; // New flag for load more indicator
+  final bool isLoadingMore;
   final List<T> items;
   final List<Group<G, T>> groupedItems;
   final Widget loadingWidget;
-  final Widget loadMoreWidget;
   final Widget noRecordFoundWidget;
   final Widget Function(BuildContext context, int index, T item) itemBuilder;
   final Widget Function(BuildContext context, int index, G groupKey)?
@@ -29,12 +29,6 @@ class ScrollableGridView<G, T> extends StatefulWidget {
     required this.itemBuilder,
     required this.items,
     required this.loadingWidget,
-    this.loadMoreWidget = const Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
-    ),
     required this.noRecordFoundWidget,
     required this.controller,
     this.groupedItems = const [],
@@ -98,103 +92,79 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
     return [
       SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        sliver: SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: widget.crossAxisCount,
-            crossAxisSpacing: widget.crossAxisSpacing,
-            mainAxisSpacing: widget.mainAxisSpacing,
-          ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final item = widget.items[index];
-              return widget.itemBuilder(context, index, item);
-            },
-            childCount: widget.items.length,
-          ),
+        sliver: SliverDynamicHeightGridView(
+          crossAxisCount: widget.crossAxisCount,
+          itemCount: widget.items.length,
+          crossAxisSpacing: widget.crossAxisSpacing,
+          mainAxisSpacing: widget.mainAxisSpacing,
+          builder: (context, index) {
+            return widget.itemBuilder(context, index, widget.items[index]);
+          },
         ),
       ),
-      _buildLoadMoreIndicator(), // ✅ Load more indicator
+      _buildLoadMoreIndicator(),
     ];
   }
 
-  /// ✅ **Grouped Grid View with Optional Sticky Headers**
+  /// ✅ **Grouped Grid View with Sticky Headers**
   List<Widget> _buildGroupedGrid(BoxConstraints constraints) {
     final slivers = <Widget>[];
 
     for (var i = 0; i < widget.groupedItems.length; i++) {
       final group = widget.groupedItems[i];
-
-      // Get group title using function or fallback to `.toString()`
       final groupTitle = widget.groupTitleBuilder?.call(group.groupKey) ??
           group.groupKey.toString();
 
-      // ✅ Group Header (Sticky or Normal based on isHeaderSticky flag)
       if (widget.isHeaderSticky) {
         slivers.add(
           SliverPersistentHeader(
-            pinned: true, // Sticky header
+            pinned: true,
             floating: false,
             delegate: _StickyHeaderDelegate(
-              child:
-                  widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
-                      Container(
-                        color: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16),
-                        child: Text(
-                          groupTitle,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+              child: widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
+                    child: Text(
+                      groupTitle,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
             ),
           ),
         );
       } else {
         slivers.add(
           SliverToBoxAdapter(
-            child: widget.groupHeaderBuilder
-                    ?.call(context, i, group.groupKey) ??
+            child: widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
                   child: Text(
                     groupTitle,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
           ),
         );
       }
 
-      // ✅ Grouped Grid Items (Fixed CrossAxisCount)
+      // ✅ **Use Dynamic Height Grid for Grouped Items**
       slivers.add(
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: widget.crossAxisCount,
-              crossAxisSpacing: widget.crossAxisSpacing,
-              mainAxisSpacing: widget.mainAxisSpacing,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final item = group.items[index];
-                return widget.itemBuilder(context, index, item);
-              },
-              childCount: group.items.length,
-            ),
+          sliver: SliverDynamicHeightGridView(
+            crossAxisCount: widget.crossAxisCount,
+            itemCount: group.items.length,
+            crossAxisSpacing: widget.crossAxisSpacing,
+            mainAxisSpacing: widget.mainAxisSpacing,
+            builder: (context, index) {
+              return widget.itemBuilder(context, index, group.items[index]);
+            },
           ),
         ),
       );
     }
 
-    // ✅ Load more indicator at the bottom
     slivers.add(_buildLoadMoreIndicator());
 
     return slivers;
@@ -204,7 +174,10 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
   Widget _buildLoadMoreIndicator() {
     return SliverToBoxAdapter(
       child: widget.isLoadingMore
-          ? widget.loadMoreWidget
+          ? Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(child: CircularProgressIndicator()),
+            )
           : const SizedBox.shrink(),
     );
   }
@@ -217,8 +190,7 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   _StickyHeaderDelegate({required this.child});
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Material(
       elevation: overlapsContent ? 2.0 : 0.0,
       child: child,
