@@ -16,7 +16,6 @@ class ScrollableGridView<G, T> extends StatefulWidget {
   final int crossAxisCount;
   final double crossAxisSpacing;
   final double mainAxisSpacing;
-  final double childAspectRatio;
   final ScrollController controller;
   final bool isGrouped;
 
@@ -34,7 +33,6 @@ class ScrollableGridView<G, T> extends StatefulWidget {
     this.crossAxisCount = 2,
     this.crossAxisSpacing = 10.0,
     this.mainAxisSpacing = 10.0,
-    this.childAspectRatio = 1.5,
     this.onRefresh,
     this.onLoadingMore,
     this.isGrouped = false,
@@ -76,35 +74,32 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
               child: CustomScrollView(
                 controller: _controller,
                 slivers: widget.isGrouped
-                    ? _buildGroupedGrid()
-                    : _buildNormalGrid(), // ✅ Now supports normal grid too
+                    ? _buildGroupedGrid(constraints)
+                    : _buildNormalGrid(constraints),
               ),
             );
           });
   }
 
   /// ✅ **Normal Grid View (Non-Grouped Data)**
-  List<Widget> _buildNormalGrid() {
+  List<Widget> _buildNormalGrid(BoxConstraints constraints) {
     final itemCount = widget.items.length;
-    final crossAxisCount =
-        itemCount < widget.crossAxisCount ? itemCount : widget.crossAxisCount;
 
     return [
       SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         sliver: SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount, // ✅ Adjust dynamically
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: constraints.maxWidth / widget.crossAxisCount,
             crossAxisSpacing: widget.crossAxisSpacing,
             mainAxisSpacing: widget.mainAxisSpacing,
-            childAspectRatio: widget.childAspectRatio,
           ),
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               final item = widget.items[index];
               return widget.itemBuilder(context, index, item);
             },
-            childCount: itemCount, // ✅ Uses user-defined items count
+            childCount: itemCount,
           ),
         ),
       ),
@@ -112,7 +107,7 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
   }
 
   /// ✅ **Grouped Grid View**
-  List<Widget> _buildGroupedGrid() {
+  List<Widget> _buildGroupedGrid(BoxConstraints constraints) {
     final slivers = <Widget>[];
 
     for (var i = 0; i < widget.groupedItems.length; i++) {
@@ -144,11 +139,10 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: widget.crossAxisCount,
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: constraints.maxWidth / widget.crossAxisCount,
               crossAxisSpacing: widget.crossAxisSpacing,
               mainAxisSpacing: widget.mainAxisSpacing,
-              childAspectRatio: widget.childAspectRatio,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {

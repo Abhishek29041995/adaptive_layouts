@@ -73,7 +73,6 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: crossAxisSpacing,
         mainAxisSpacing: mainAxisSpacing,
-        childAspectRatio: childAspectRatio,
       );
     } else {
       return ScrollList<G, T>(
