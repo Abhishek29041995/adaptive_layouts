@@ -7,3 +7,4 @@ export 'src/adaptive_scaffold.dart';
 
 export 'src/scroll_views/horizontal_scroll_view.dart';
 export 'src/scroll_views/snap_scroll_physic.dart';
+export 'src/scroll_views/dynamic_height_grid_view.dart';
