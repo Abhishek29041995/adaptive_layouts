@@ -1,5 +1,5 @@
-import 'package:adaptive_layouts/src/scroll_views/group_item.dart';
 import 'package:flutter/material.dart';
+import 'package:adaptive_layouts/src/scroll_views/group_item.dart';
 
 class ScrollableGridView<G, T> extends StatefulWidget {
   final VoidCallback? onRefresh;
@@ -83,14 +83,12 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
 
   /// ✅ **Normal Grid View (Non-Grouped Data)**
   List<Widget> _buildNormalGrid(BoxConstraints constraints) {
-    final itemCount = widget.items.length;
-
     return [
       SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         sliver: SliverGrid(
-          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: constraints.maxWidth / widget.crossAxisCount,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: widget.crossAxisCount,
             crossAxisSpacing: widget.crossAxisSpacing,
             mainAxisSpacing: widget.mainAxisSpacing,
           ),
@@ -99,14 +97,14 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
               final item = widget.items[index];
               return widget.itemBuilder(context, index, item);
             },
-            childCount: itemCount,
+            childCount: widget.items.length,
           ),
         ),
       ),
     ];
   }
 
-  /// ✅ **Grouped Grid View**
+  /// ✅ **Grouped Grid View with Fixes**
   List<Widget> _buildGroupedGrid(BoxConstraints constraints) {
     final slivers = <Widget>[];
 
@@ -117,30 +115,37 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
       final groupTitle = widget.groupTitleBuilder?.call(group.groupKey) ??
           group.groupKey.toString();
 
-      // ✅ Group Header
+      // ✅ Group Header (Sticky or Normal)
       slivers.add(
-        SliverToBoxAdapter(
-          child: widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  groupTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+        SliverPersistentHeader(
+          pinned: true, // Sticky header
+          floating: false,
+          delegate: _StickyHeaderDelegate(
+            child: widget.groupHeaderBuilder
+                    ?.call(context, i, group.groupKey) ??
+                Container(
+                  color: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
+                  child: Text(
+                    groupTitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
+          ),
         ),
       );
 
-      // ✅ Grouped Grid Items
+      // ✅ Grouped Grid Items (Fixed CrossAxisCount)
       slivers.add(
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: constraints.maxWidth / widget.crossAxisCount,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: widget.crossAxisCount,
               crossAxisSpacing: widget.crossAxisSpacing,
               mainAxisSpacing: widget.mainAxisSpacing,
             ),
@@ -157,5 +162,32 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
     }
 
     return slivers;
+  }
+}
+
+/// 🔹 **Sticky Header Delegate**
+class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  _StickyHeaderDelegate({required this.child});
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Material(
+      elevation: overlapsContent ? 2.0 : 0.0,
+      child: child,
+    );
+  }
+
+  @override
+  double get maxExtent => 50.0;
+
+  @override
+  double get minExtent => 50.0;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return true;
   }
 }
