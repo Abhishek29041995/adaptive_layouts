@@ -22,7 +22,6 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
   final int crossAxisCount;
   final double crossAxisSpacing;
   final double mainAxisSpacing;
-  final double childAspectRatio;
   final bool gridViewOnly;
 
   const AdaptiveScrollView({
@@ -45,7 +44,6 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
     this.crossAxisCount = 2,
     this.crossAxisSpacing = 10.0,
     this.mainAxisSpacing = 10.0,
-    this.childAspectRatio = 1.5,
     this.gridViewOnly = false,
   });
 
