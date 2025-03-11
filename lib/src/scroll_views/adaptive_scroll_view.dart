@@ -6,6 +6,7 @@ import 'scrollable_grid_view.dart';
 
 class AdaptiveScrollView<G, T> extends StatelessWidget {
   final bool isLoading;
+  final bool isLoadingMore;
   final List<T> items;
   final List<Group<G, T>> groupedItems;
   final Widget Function(BuildContext context, int index, T item) itemBuilder;
@@ -34,6 +35,7 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
     this.groupHeaderBuilder,
     this.groupTitleBuilder,
     this.onRefresh,
+    this.isLoadingMore = false,
     this.onLoadingMore,
     this.header = const SizedBox.shrink(),
     this.loadingWidget =
@@ -69,6 +71,7 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
         noRecordFoundWidget: noRecordFoundWidget, // ✅ Pass to GridView
         onRefresh: onRefresh,
         onLoadingMore: onLoadingMore,
+        isLoadingMore: isLoadingMore,
         isGrouped: groupedItems.isNotEmpty,
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: crossAxisSpacing,

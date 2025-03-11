@@ -5,9 +5,11 @@ class ScrollableGridView<G, T> extends StatefulWidget {
   final VoidCallback? onRefresh;
   final VoidCallback? onLoadingMore;
   final bool isLoading;
+  final bool isLoadingMore; // New flag for load more indicator
   final List<T> items;
   final List<Group<G, T>> groupedItems;
   final Widget loadingWidget;
+  final Widget loadMoreWidget;
   final Widget noRecordFoundWidget;
   final Widget Function(BuildContext context, int index, T item) itemBuilder;
   final Widget Function(BuildContext context, int index, G groupKey)?
@@ -18,13 +20,21 @@ class ScrollableGridView<G, T> extends StatefulWidget {
   final double mainAxisSpacing;
   final ScrollController controller;
   final bool isGrouped;
+  final bool isHeaderSticky;
 
   const ScrollableGridView({
     super.key,
     required this.isLoading,
+    required this.isLoadingMore,
     required this.itemBuilder,
     required this.items,
     required this.loadingWidget,
+    this.loadMoreWidget = const Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    ),
     required this.noRecordFoundWidget,
     required this.controller,
     this.groupedItems = const [],
@@ -36,6 +46,7 @@ class ScrollableGridView<G, T> extends StatefulWidget {
     this.onRefresh,
     this.onLoadingMore,
     this.isGrouped = false,
+    this.isHeaderSticky = false,
   });
 
   @override
@@ -51,7 +62,8 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
     _controller = widget.controller;
     _controller.addListener(() {
       if (_controller.position.pixels >= _controller.position.maxScrollExtent &&
-          widget.items.isNotEmpty) {
+          widget.items.isNotEmpty &&
+          !widget.isLoadingMore) {
         widget.onLoadingMore?.call();
       }
     });
@@ -101,10 +113,11 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
           ),
         ),
       ),
+      _buildLoadMoreIndicator(), // ✅ Load more indicator
     ];
   }
 
-  /// ✅ **Grouped Grid View with Fixes**
+  /// ✅ **Grouped Grid View with Optional Sticky Headers**
   List<Widget> _buildGroupedGrid(BoxConstraints constraints) {
     final slivers = <Widget>[];
 
@@ -115,16 +128,36 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
       final groupTitle = widget.groupTitleBuilder?.call(group.groupKey) ??
           group.groupKey.toString();
 
-      // ✅ Group Header (Sticky or Normal)
-      slivers.add(
-        SliverPersistentHeader(
-          pinned: true, // Sticky header
-          floating: false,
-          delegate: _StickyHeaderDelegate(
+      // ✅ Group Header (Sticky or Normal based on isHeaderSticky flag)
+      if (widget.isHeaderSticky) {
+        slivers.add(
+          SliverPersistentHeader(
+            pinned: true, // Sticky header
+            floating: false,
+            delegate: _StickyHeaderDelegate(
+              child:
+                  widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
+                      Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16),
+                        child: Text(
+                          groupTitle,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+            ),
+          ),
+        );
+      } else {
+        slivers.add(
+          SliverToBoxAdapter(
             child: widget.groupHeaderBuilder
                     ?.call(context, i, group.groupKey) ??
-                Container(
-                  color: Colors.white,
+                Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
                   child: Text(
@@ -136,8 +169,8 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
                   ),
                 ),
           ),
-        ),
-      );
+        );
+      }
 
       // ✅ Grouped Grid Items (Fixed CrossAxisCount)
       slivers.add(
@@ -161,7 +194,19 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
       );
     }
 
+    // ✅ Load more indicator at the bottom
+    slivers.add(_buildLoadMoreIndicator());
+
     return slivers;
+  }
+
+  /// ✅ **Load More Indicator**
+  Widget _buildLoadMoreIndicator() {
+    return SliverToBoxAdapter(
+      child: widget.isLoadingMore
+          ? widget.loadMoreWidget
+          : const SizedBox.shrink(),
+    );
   }
 }
 
