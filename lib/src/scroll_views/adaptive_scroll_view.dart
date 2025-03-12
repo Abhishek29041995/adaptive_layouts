@@ -18,6 +18,7 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
   final ScrollController controller;
   final Widget header;
   final Widget loadingWidget; // ✅ Optional loading widget
+  final Widget loadMoreWidget; // ✅ Optional loading widget
   final Widget noRecordFoundWidget; // ✅ Optional no record widget
   final int crossAxisCount;
   final double crossAxisSpacing;
@@ -39,6 +40,11 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
     this.header = const SizedBox.shrink(),
     this.loadingWidget =
         const Center(child: CircularProgressIndicator()), // ✅ Default loading
+    this.loadMoreWidget = const SizedBox(
+      // Load More Indicator
+      height: 50,
+      child: Center(child: CircularProgressIndicator()),
+    ), // ✅ Default loading
     this.noRecordFoundWidget =
         const Center(child: Text("No records found")), // ✅ Default empty state
     this.crossAxisCount = 2,
@@ -65,7 +71,8 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
         groupHeaderBuilder: groupHeaderBuilder,
         groupTitleBuilder: groupTitleBuilder,
         controller: controller,
-        loadingWidget: loadingWidget, // ✅ Pass to GridView
+        loadingWidget: loadingWidget, // Full screen loader
+        loadMoreWidget: loadMoreWidget,
         noRecordFoundWidget: noRecordFoundWidget, // ✅ Pass to GridView
         onRefresh: onRefresh,
         onLoadingMore: onLoadingMore,
@@ -78,13 +85,15 @@ class AdaptiveScrollView<G, T> extends StatelessWidget {
     } else {
       return ScrollList<G, T>(
         isLoading: isLoading,
+        isLoadingMore: isLoadingMore,
         items: items,
+        loadingWidget: loadingWidget, // Full screen loader
+        loadMoreWidget: loadMoreWidget,
         groupedItems: groupedItems,
         itemBuilder: itemBuilder,
         groupHeaderBuilder: groupHeaderBuilder,
         groupTitleBuilder: groupTitleBuilder,
         controller: controller,
-        loadingWidget: loadingWidget, // ✅ Pass to ScrollList
         noRecordFoundWidget: noRecordFoundWidget, // ✅ Pass to ScrollList
         onRefresh: onRefresh,
         onLoadingMore: onLoadingMore,

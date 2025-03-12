@@ -10,6 +10,7 @@ class ScrollableGridView<G, T> extends StatefulWidget {
   final List<T> items;
   final List<Group<G, T>> groupedItems;
   final Widget loadingWidget;
+  final Widget loadMoreWidget;
   final Widget noRecordFoundWidget;
   final Widget Function(BuildContext context, int index, T item) itemBuilder;
   final Widget Function(BuildContext context, int index, G groupKey)?
@@ -29,6 +30,7 @@ class ScrollableGridView<G, T> extends StatefulWidget {
     required this.itemBuilder,
     required this.items,
     required this.loadingWidget,
+    required this.loadMoreWidget,
     required this.noRecordFoundWidget,
     required this.controller,
     this.groupedItems = const [],
@@ -73,7 +75,7 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
   @override
   Widget build(BuildContext context) {
     return widget.isLoading && widget.items.isEmpty
-        ? widget.loadingWidget
+        ? widget.loadingWidget // 🔹 Full-screen loader
         : LayoutBuilder(builder: (context, constraints) {
             return RefreshIndicator(
               onRefresh: () async => widget.onRefresh?.call(),
@@ -176,13 +178,14 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
     return slivers;
   }
 
-  /// ✅ **Load More Indicator**
+  /// ✅ **Load More Indicator (Pagination Loader)**
   Widget _buildLoadMoreIndicator() {
     return SliverToBoxAdapter(
       child: widget.isLoadingMore
           ? Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Center(child: CircularProgressIndicator()),
+              child:
+                  Center(child: widget.loadMoreWidget), // 🔹 Pagination loader
             )
           : const SizedBox.shrink(),
     );

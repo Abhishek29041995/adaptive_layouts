@@ -5,9 +5,11 @@ class ScrollList<G, T> extends StatefulWidget {
   final VoidCallback? onRefresh;
   final VoidCallback? onLoadingMore;
   final bool isLoading;
+  final bool isLoadingMore;
   final List<T> items;
   final List<Group<G, T>> groupedItems;
   final Widget loadingWidget;
+  final Widget loadMoreWidget;
   final Widget noRecordFoundWidget;
   final Widget header;
   final ScrollController controller;
@@ -21,9 +23,11 @@ class ScrollList<G, T> extends StatefulWidget {
   const ScrollList({
     super.key,
     required this.isLoading,
+    required this.isLoadingMore,
     required this.itemBuilder,
     required this.items,
     required this.loadingWidget,
+    required this.loadMoreWidget,
     required this.noRecordFoundWidget,
     required this.controller,
     this.groupedItems = const [],
@@ -48,7 +52,8 @@ class _ScrollListState<G, T> extends State<ScrollList<G, T>> {
     _controller = widget.controller;
     _controller.addListener(() {
       if (_controller.position.pixels >= _controller.position.maxScrollExtent &&
-          widget.items.isNotEmpty) {
+          widget.items.isNotEmpty &&
+          !widget.isLoadingMore) {
         widget.onLoadingMore?.call();
       }
     });
@@ -64,7 +69,7 @@ class _ScrollListState<G, T> extends State<ScrollList<G, T>> {
   @override
   Widget build(BuildContext context) {
     return widget.isLoading && widget.items.isEmpty
-        ? widget.loadingWidget
+        ? widget.loadingWidget // Full screen loader (Initial Loading)
         : RefreshIndicator(
             onRefresh: () async => widget.onRefresh?.call(),
             child: CustomScrollView(
@@ -75,7 +80,9 @@ class _ScrollListState<G, T> extends State<ScrollList<G, T>> {
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(child: widget.header),
+
                 if (widget.isGrouped) ..._buildGroupedList(),
+
                 if (!widget.isGrouped)
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
@@ -86,10 +93,17 @@ class _ScrollListState<G, T> extends State<ScrollList<G, T>> {
                       childCount: widget.items.length,
                     ),
                   ),
-                if (widget.isLoading)
+
+                // Load More Indicator (Appears only during pagination)
+                if (widget.isLoadingMore && widget.items.isNotEmpty)
                   SliverToBoxAdapter(
-                    child: widget.loadingWidget,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Center(child: widget.loadMoreWidget),
+                    ),
                   ),
+
+                // No Records Found Widget
                 if (widget.items.isEmpty && !widget.isLoading)
                   SliverToBoxAdapter(child: widget.noRecordFoundWidget),
               ],
@@ -110,9 +124,15 @@ class _ScrollListState<G, T> extends State<ScrollList<G, T>> {
       slivers.add(
         SliverToBoxAdapter(
           child: widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
-              Text(groupTitle,
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: Text(
+                  groupTitle,
                   style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
         ),
       );
 
