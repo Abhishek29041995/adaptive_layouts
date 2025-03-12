@@ -121,27 +121,33 @@ class _ScrollableGridViewState<G, T> extends State<ScrollableGridView<G, T>> {
             pinned: true,
             floating: false,
             delegate: _StickyHeaderDelegate(
-              child: widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
-                    child: Text(
-                      groupTitle,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
+              child:
+                  widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
+                      Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16),
+                        child: Text(
+                          groupTitle,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
             ),
           ),
         );
       } else {
         slivers.add(
           SliverToBoxAdapter(
-            child: widget.groupHeaderBuilder?.call(context, i, group.groupKey) ??
+            child: widget.groupHeaderBuilder
+                    ?.call(context, i, group.groupKey) ??
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
                   child: Text(
                     groupTitle,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
           ),
@@ -190,7 +196,8 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   _StickyHeaderDelegate({required this.child});
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Material(
       elevation: overlapsContent ? 2.0 : 0.0,
       child: child,

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 /// GridView with dynamic height
 ///
 /// Usage is almost same as [GridView.count]
+
+/// GridView with dynamic height
+/// Ensures all items in a row have equal height.
 class DynamicHeightGridView extends StatelessWidget {
   const DynamicHeightGridView({
     Key? key,
@@ -16,23 +19,19 @@ class DynamicHeightGridView extends StatelessWidget {
     this.shrinkWrap = false,
     this.physics,
   }) : super(key: key);
+
   final IndexedWidgetBuilder builder;
   final int itemCount;
   final int crossAxisCount;
   final double crossAxisSpacing;
   final double mainAxisSpacing;
   final CrossAxisAlignment rowCrossAxisAlignment;
-
   final ScrollPhysics? physics;
   final ScrollController? controller;
   final bool shrinkWrap;
 
   int columnLength() {
-    if (itemCount % crossAxisCount == 0) {
-      return itemCount ~/ crossAxisCount;
-    } else {
-      return (itemCount ~/ crossAxisCount) + 1;
-    }
+    return (itemCount / crossAxisCount).ceil();
   }
 
   @override
@@ -41,6 +40,7 @@ class DynamicHeightGridView extends StatelessWidget {
       controller: controller,
       shrinkWrap: shrinkWrap,
       physics: physics,
+      itemCount: columnLength(),
       itemBuilder: (ctx, columnIndex) {
         return _GridRow(
           columnIndex: columnIndex,
@@ -52,7 +52,6 @@ class DynamicHeightGridView extends StatelessWidget {
           crossAxisAlignment: rowCrossAxisAlignment,
         );
       },
-      itemCount: columnLength(),
     );
   }
 }
@@ -69,6 +68,7 @@ class SliverDynamicHeightGridView extends StatelessWidget {
     this.rowCrossAxisAlignment = CrossAxisAlignment.start,
     this.controller,
   }) : super(key: key);
+
   final IndexedWidgetBuilder builder;
   final int itemCount;
   final int crossAxisCount;
@@ -78,11 +78,7 @@ class SliverDynamicHeightGridView extends StatelessWidget {
   final ScrollController? controller;
 
   int columnLength() {
-    if (itemCount % crossAxisCount == 0) {
-      return itemCount ~/ crossAxisCount;
-    } else {
-      return (itemCount ~/ crossAxisCount) + 1;
-    }
+    return (itemCount / crossAxisCount).ceil();
   }
 
   @override
@@ -117,6 +113,7 @@ class _GridRow extends StatelessWidget {
     required this.mainAxisSpacing,
     required this.crossAxisAlignment,
   }) : super(key: key);
+
   final IndexedWidgetBuilder builder;
   final int itemCount;
   final int crossAxisCount;
@@ -131,24 +128,33 @@ class _GridRow extends StatelessWidget {
       padding: EdgeInsets.only(
         top: (columnIndex == 0) ? 0 : mainAxisSpacing,
       ),
-      child: Row(
-        crossAxisAlignment: crossAxisAlignment,
-        children: List.generate(
-          (crossAxisCount * 2) - 1,
-          (rowIndex) {
-            final rowNum = rowIndex + 1;
-            if (rowNum % 2 == 0) {
-              return SizedBox(width: crossAxisSpacing);
-            }
-            final rowItemIndex = ((rowNum + 1) ~/ 2) - 1;
-            final itemIndex = (columnIndex * crossAxisCount) + rowItemIndex;
-            if (itemIndex > itemCount - 1) {
-              return const Expanded(child: SizedBox());
-            }
-            return Expanded(
-              child: builder(context, itemIndex),
-            );
-          },
+      child: IntrinsicHeight(
+        // Ensures all items in the row have the same height
+        child: Row(
+          crossAxisAlignment: crossAxisAlignment,
+          children: List.generate(
+            (crossAxisCount * 2) - 1,
+            (rowIndex) {
+              final rowNum = rowIndex + 1;
+              if (rowNum % 2 == 0) {
+                return SizedBox(width: crossAxisSpacing);
+              }
+              final rowItemIndex = ((rowNum + 1) ~/ 2) - 1;
+              final itemIndex = (columnIndex * crossAxisCount) + rowItemIndex;
+              if (itemIndex > itemCount - 1) {
+                return const Expanded(child: SizedBox());
+              }
+              return Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                        child:
+                            builder(context, itemIndex)), // Forces equal height
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
