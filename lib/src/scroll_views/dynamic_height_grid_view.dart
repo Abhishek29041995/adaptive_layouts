@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
+import 'group_item.dart';
 
-/// GridView with dynamic height
-///
-/// Usage is almost same as [GridView.count]
-
-/// GridView with dynamic height
-/// Ensures all items in a row have equal height.
-class DynamicHeightGridView extends StatelessWidget {
-  const DynamicHeightGridView({
+/// GridView with dynamic height and group support./// GridView with dynamic height and group support.
+class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
+  const GroupedDynamicHeightGridView({
     Key? key,
-    required this.builder,
-    required this.itemCount,
+    required this.groupedItems,
+    required this.itemBuilder,
+    required this.headerBuilder,
     required this.crossAxisCount,
     this.crossAxisSpacing = 8,
     this.mainAxisSpacing = 8,
@@ -20,8 +17,9 @@ class DynamicHeightGridView extends StatelessWidget {
     this.physics,
   }) : super(key: key);
 
-  final IndexedWidgetBuilder builder;
-  final int itemCount;
+  final List<Group<G, T>> groupedItems;
+  final Widget Function(BuildContext, T) itemBuilder;
+  final Widget Function(BuildContext, G) headerBuilder;
   final int crossAxisCount;
   final double crossAxisSpacing;
   final double mainAxisSpacing;
@@ -30,33 +28,89 @@ class DynamicHeightGridView extends StatelessWidget {
   final ScrollController? controller;
   final bool shrinkWrap;
 
-  int columnLength() {
-    return (itemCount / crossAxisCount).ceil();
-  }
-
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       controller: controller,
       shrinkWrap: shrinkWrap,
       physics: physics,
-      itemCount: columnLength(),
-      itemBuilder: (ctx, columnIndex) {
-        return _GridRow(
-          columnIndex: columnIndex,
-          builder: builder,
-          itemCount: itemCount,
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: crossAxisSpacing,
-          mainAxisSpacing: mainAxisSpacing,
-          crossAxisAlignment: rowCrossAxisAlignment,
+      itemCount: groupedItems.length,
+      itemBuilder: (ctx, groupIndex) {
+        final group = groupedItems[groupIndex];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            headerBuilder(ctx, group.groupKey),
+            DynamicHeightGridView(
+              builder: (context, itemIndex) =>
+                  itemBuilder(context, group.items[itemIndex]),
+              itemCount: group.items.length,
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: crossAxisSpacing,
+              mainAxisSpacing: mainAxisSpacing,
+              rowCrossAxisAlignment: rowCrossAxisAlignment,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+            ),
+          ],
         );
       },
     );
   }
 }
 
-/// Use this for [CustomScrollView]
+/// Sliver implementation of grouped dynamic height grid.
+class SliverGroupedDynamicHeightGridView<G, T> extends StatelessWidget {
+  const SliverGroupedDynamicHeightGridView({
+    Key? key,
+    required this.groupedItems,
+    required this.itemBuilder,
+    required this.headerBuilder,
+    required this.crossAxisCount,
+    this.crossAxisSpacing = 8,
+    this.mainAxisSpacing = 8,
+    this.rowCrossAxisAlignment = CrossAxisAlignment.start,
+  }) : super(key: key);
+
+  final List<Group<G, T>> groupedItems;
+  final Widget Function(BuildContext, T) itemBuilder;
+  final Widget Function(BuildContext, G) headerBuilder;
+  final int crossAxisCount;
+  final double crossAxisSpacing;
+  final double mainAxisSpacing;
+  final CrossAxisAlignment rowCrossAxisAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (ctx, groupIndex) {
+          final group = groupedItems[groupIndex];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              headerBuilder(ctx, group.groupKey),
+              DynamicHeightGridView(
+                builder: (context, itemIndex) =>
+                    itemBuilder(context, group.items[itemIndex]),
+                itemCount: group.items.length,
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: crossAxisSpacing,
+                mainAxisSpacing: mainAxisSpacing,
+                rowCrossAxisAlignment: rowCrossAxisAlignment,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+              ),
+            ],
+          );
+        },
+        childCount: groupedItems.length,
+      ),
+    );
+  }
+}
+
+/// Sliver Dynamic Height GridView
 class SliverDynamicHeightGridView extends StatelessWidget {
   const SliverDynamicHeightGridView({
     Key? key,
@@ -66,7 +120,6 @@ class SliverDynamicHeightGridView extends StatelessWidget {
     this.crossAxisSpacing = 8,
     this.mainAxisSpacing = 8,
     this.rowCrossAxisAlignment = CrossAxisAlignment.start,
-    this.controller,
   }) : super(key: key);
 
   final IndexedWidgetBuilder builder;
@@ -75,7 +128,6 @@ class SliverDynamicHeightGridView extends StatelessWidget {
   final double crossAxisSpacing;
   final double mainAxisSpacing;
   final CrossAxisAlignment rowCrossAxisAlignment;
-  final ScrollController? controller;
 
   int columnLength() {
     return (itemCount / crossAxisCount).ceil();
@@ -98,6 +150,50 @@ class SliverDynamicHeightGridView extends StatelessWidget {
         },
         childCount: columnLength(),
       ),
+    );
+  }
+}
+
+/// Non-sliver Dynamic Height GridView
+class DynamicHeightGridView extends StatelessWidget {
+  const DynamicHeightGridView({
+    Key? key,
+    required this.builder,
+    required this.itemCount,
+    required this.crossAxisCount,
+    this.crossAxisSpacing = 8,
+    this.mainAxisSpacing = 8,
+    this.rowCrossAxisAlignment = CrossAxisAlignment.start,
+    this.shrinkWrap = false,
+    this.physics,
+  }) : super(key: key);
+
+  final IndexedWidgetBuilder builder;
+  final int itemCount;
+  final int crossAxisCount;
+  final double crossAxisSpacing;
+  final double mainAxisSpacing;
+  final CrossAxisAlignment rowCrossAxisAlignment;
+  final ScrollPhysics? physics;
+  final bool shrinkWrap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: shrinkWrap,
+      physics: physics,
+      itemCount: (itemCount / crossAxisCount).ceil(),
+      itemBuilder: (ctx, rowIndex) {
+        return _GridRow(
+          columnIndex: rowIndex,
+          builder: builder,
+          itemCount: itemCount,
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: crossAxisSpacing,
+          mainAxisSpacing: mainAxisSpacing,
+          crossAxisAlignment: rowCrossAxisAlignment,
+        );
+      },
     );
   }
 }
@@ -129,10 +225,8 @@ class _GridRow extends StatelessWidget {
         top: (columnIndex == 0) ? 0 : mainAxisSpacing,
       ),
       child: LayoutBuilder(
-        // Ensures height adapts dynamically
         builder: (context, constraints) {
           return IntrinsicHeight(
-            // Forces children to take the height of the tallest one
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: List.generate(
@@ -146,17 +240,13 @@ class _GridRow extends StatelessWidget {
                   final itemIndex =
                       (columnIndex * crossAxisCount) + rowItemIndex;
                   if (itemIndex > itemCount - 1) {
-                    return Expanded(
-                        child: SizedBox()); // Keeps alignment in last row
+                    return Expanded(child: SizedBox());
                   }
                   return Expanded(
                     child: Column(
-                      mainAxisSize: MainAxisSize
-                          .max, // Forces items to fill available height
+                      mainAxisSize: MainAxisSize.max,
                       children: [
-                        Expanded(
-                            child: builder(
-                                context, itemIndex)), // Ensures equal height
+                        Expanded(child: builder(context, itemIndex)),
                       ],
                     ),
                   );
