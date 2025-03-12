@@ -228,7 +228,10 @@ class _GridRow extends StatelessWidget {
         builder: (context, constraints) {
           return IntrinsicHeight(
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: crossAxisCount == 1
+                  ? CrossAxisAlignment
+                      .start // Align to start when only 1 column
+                  : CrossAxisAlignment.stretch,
               children: List.generate(
                 (crossAxisCount * 2) - 1,
                 (rowIndex) {
