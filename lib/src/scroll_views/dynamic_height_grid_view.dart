@@ -129,9 +129,10 @@ class _GridRow extends StatelessWidget {
         top: (columnIndex == 0) ? 0 : mainAxisSpacing,
       ),
       child: IntrinsicHeight(
-        // Ensures all items in the row have the same height
+        // ✅ Ensures all children take the height of the tallest
         child: Row(
-          crossAxisAlignment: crossAxisAlignment,
+          crossAxisAlignment:
+              CrossAxisAlignment.stretch, // ✅ Makes items stretch
           children: List.generate(
             (crossAxisCount * 2) - 1,
             (rowIndex) {
@@ -142,14 +143,15 @@ class _GridRow extends StatelessWidget {
               final rowItemIndex = ((rowNum + 1) ~/ 2) - 1;
               final itemIndex = (columnIndex * crossAxisCount) + rowItemIndex;
               if (itemIndex > itemCount - 1) {
-                return const Expanded(child: SizedBox());
+                return const Expanded(
+                    child: SizedBox()); // Ensures alignment in the last row
               }
               return Expanded(
                 child: Column(
+                  mainAxisSize:
+                      MainAxisSize.min, // ✅ Makes it take only required height
                   children: [
-                    Expanded(
-                        child:
-                            builder(context, itemIndex)), // Forces equal height
+                    builder(context, itemIndex),
                   ],
                 ),
               );
