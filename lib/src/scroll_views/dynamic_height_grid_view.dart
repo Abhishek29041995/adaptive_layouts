@@ -245,14 +245,17 @@ class _GridRow extends StatelessWidget {
                   if (itemIndex > itemCount - 1) {
                     return Expanded(child: SizedBox());
                   }
-                  return Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(child: builder(context, itemIndex)),
-                      ],
-                    ),
-                  );
+                  return crossAxisCount == 1
+                      ? builder(context,
+                          itemIndex) // Directly use the item when only 1 column
+                      : Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Expanded(child: builder(context, itemIndex)),
+                            ],
+                          ),
+                        );
                 },
               ),
             ),
