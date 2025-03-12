@@ -3,140 +3,69 @@ import 'package:flutter/material.dart';
 import 'snap_scroll_physic.dart';
 
 class HorizontalListView extends StatefulWidget {
-  /// The `HorizontalListView` widget allows you to create a horizontal list view
-  /// with customizable properties such as the number of items per row, spacing
-  /// between items, and scroll control. You can populate the list either by
-  /// providing a predefined list of children or by using a builder function to
-  /// create each item dynamically.
-  ///
-  /// [crossAxisCount] specifies the number of items to display per row.
-  /// [crossAxisSpacing] sets the spacing between items in the same row.
-  /// [controller] is an optional scroll controller to control the scroll behavior.
-  /// [alignment] defines the alignment of items within the rows (default is center).
-  /// [children] is a list of child widgets
-  ///
-  /// Example usage:
-  ///
-  /// ```
-  /// HorizontalListView(
-  ///   crossAxisCount: 2,
-  ///   crossAxisSpacing: 8.0,
-  ///   controller: myController,
-  ///   children: [
-  ///     // List of child widgets
-  ///     // ...
-  ///   ],
-  /// )
-  /// ```
-  HorizontalListView({
-    required this.crossAxisCount,
-    required this.crossAxisSpacing,
-    this.controller,
-    this.alignment = CrossAxisAlignment.center,
-    required this.children,
-    super.key,
-  })  : itemCount = children!.length,
-        itemBuilder = null;
-
-  /// Creates a `HorizontalListView` using a builder function.
-  ///
-  /// [crossAxisCount] specifies the number of items to display per row.
-  /// [crossAxisSpacing] sets the spacing between items in the same row.
-  /// [controller] is an optional scroll controller to control the scroll behavior.
-  /// [alignment] defines the alignment of items within the rows (default is center).
-  /// [itemCount] is the total number of items in the list.
-  /// [itemBuilder] is a callback function to build each item widget based on the index.
-  ///
-  /// Example usage:
-  ///
-  /// ```dart
-  /// HorizontalListView.builder(
-  ///   crossAxisCount: 2,
-  ///   crossAxisSpacing: 8.0,
-  ///   controller: myController,
-  ///   itemCount: itemCount,
-  ///   itemBuilder: (context, index) {
-  ///     // Build each item dynamically based on the index
-  ///     return MyCustomItemWidget(index: index);
-  ///   },
-  /// )
-  /// ```
-  const HorizontalListView.builder({
-    required this.crossAxisCount,
-    this.crossAxisSpacing = 0,
-    this.controller,
-    this.alignment = CrossAxisAlignment.center,
-    required this.itemCount,
-    required this.itemBuilder,
-    super.key,
-  }) : children = null;
-
-  /// [crossAxisCount] specifies the number of items to display per row.
+  final ScrollController? controller;
+  final int itemCount;
   final int crossAxisCount;
-
-  /// [crossAxisSpacing] sets the spacing between items in the same row.
   final double crossAxisSpacing;
-
-  /// [alignment] defines the alignment of items within the rows (default is center).
+  final List<Widget>? children;
+  final Widget Function(BuildContext, int)? itemBuilder;
   final CrossAxisAlignment? alignment;
 
-  /// [controller] is an optional scroll controller to control the scroll behavior.
-  final HorizontalListViewController? controller;
-
-  /// [itemCount] is the total number of items in the list.
-  final int itemCount;
-
-  /// [children] is a list of child widgets.
-  final List<Widget>? children;
-
-  /// [itemBuilder] is a callback function to build each item widget.
-  final Widget Function(BuildContext context, int index)? itemBuilder;
+  const HorizontalListView({
+    super.key,
+    this.controller,
+    required this.itemCount,
+    required this.crossAxisCount,
+    required this.crossAxisSpacing,
+    this.children,
+    this.itemBuilder,
+    this.alignment,
+  }) : assert(children != null || itemBuilder != null,
+            "Either children or itemBuilder must be provided");
 
   @override
-  State<HorizontalListView> createState() => _HorizontalListViewState();
+  _HorizontalListViewState createState() => _HorizontalListViewState();
 }
 
 class _HorizontalListViewState extends State<HorizontalListView> {
-  void rebuildAllChildren(BuildContext context) {
-    void rebuild(Element el) {
-      el.markNeedsBuild();
-      el.visitChildren(rebuild);
-    }
+  double _maxItemHeight = 0;
+  late List<GlobalKey> itemKeys;
 
-    (context as Element).visitChildren(rebuild);
-  }
-
-  Key _key = UniqueKey();
-
-  int _computeActualChildCount(int itemCount) {
-    return math.max(0, itemCount * 2 - 1);
+  @override
+  void initState() {
+    super.initState();
+    itemKeys = List.generate(widget.itemCount, (index) => GlobalKey());
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-      key: _key,
       builder: (context, constraints) {
         double snapSize = constraints.maxWidth + widget.crossAxisSpacing;
-
         SnapScrollSize scrollPhysics = SnapScrollSize(snapSize: snapSize);
-
-        if (!_key.toString().contains(snapSize.toString())) {
-          Future.delayed(Duration.zero, () {
-            setState(() {
-              rebuildAllChildren(context);
-              _key = new Key('snap-$snapSize');
-            });
-          });
-        }
-
-        if (widget.controller != null) {
-          widget.controller!.snapSize = snapSize;
-        }
 
         double itemWidth = (constraints.maxWidth -
                 ((widget.crossAxisCount - 1) * widget.crossAxisSpacing)) /
             widget.crossAxisCount;
+
+        // Measure the tallest item's height
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          double maxHeight = 0;
+          for (var key in itemKeys) {
+            final context = key.currentContext;
+            if (context != null) {
+              final box = context.findRenderObject() as RenderBox?;
+              if (box != null) {
+                maxHeight = math.max(maxHeight, box.size.height);
+              }
+            }
+          }
+          if (maxHeight > 0 && maxHeight != _maxItemHeight) {
+            setState(() {
+              _maxItemHeight = maxHeight;
+            });
+          }
+        });
 
         return SingleChildScrollView(
           controller: widget.controller,
@@ -150,9 +79,13 @@ class _HorizontalListViewState extends State<HorizontalListView> {
                 if (index.isEven) {
                   return SizedBox(
                     width: itemWidth,
-                    child: widget.children != null
-                        ? widget.children![index ~/ 2]
-                        : widget.itemBuilder!.call(context, index ~/ 2),
+                    height: _maxItemHeight > 0 ? _maxItemHeight : null,
+                    child: Container(
+                      key: itemKeys[index ~/ 2], // Assign keys to items
+                      child: widget.children != null
+                          ? widget.children![index ~/ 2]
+                          : widget.itemBuilder!.call(context, index ~/ 2),
+                    ),
                   );
                 } else {
                   return SizedBox(width: widget.crossAxisSpacing);
@@ -164,57 +97,8 @@ class _HorizontalListViewState extends State<HorizontalListView> {
       },
     );
   }
-}
 
-/// Custom scroll controller for controlling the horizontal list view's behavior.
-///
-/// The `HorizontalListViewController` provides additional functionality to
-/// control and interact with the `HorizontalListView`. You can use it to
-/// animate scrolling to a specific page, determine the current visible page,
-/// and get the total number of pages in the list.
-///
-/// Example usage:
-///
-/// ```dart
-/// HorizontalListViewController myController = HorizontalListViewController();
-/// myController.animateToPage(2, duration: Duration(milliseconds: 500), curve: Curves.ease);
-/// int currentPage = myController.currentPage;
-/// int totalPages = myController.pageLength;
-/// ```
-class HorizontalListViewController extends ScrollController {
-  HorizontalListViewController() : super();
-
-  /// Animates the scroll view to a specific page with [duration] and [curve].
-  ///
-  /// [page] is the target page number.
-  Future<void> animateToPage(int page,
-      {required Duration duration, required Curve curve}) {
-    double offset = _snapSize * page;
-
-    if (page <= 0) {
-      page = 0;
-      offset = position.minScrollExtent;
-    }
-    if (page >= pageLenght) {
-      page = pageLenght;
-      offset = position.maxScrollExtent;
-    }
-
-    return super.animateTo(offset, duration: duration, curve: curve);
+  int _computeActualChildCount(int itemCount) {
+    return math.max(0, (itemCount * 2) - 1);
   }
-
-  /// Gets the current visible page.
-  int get currentPage {
-    String roundedPage = (position.pixels / _snapSize).toStringAsFixed(1);
-    int parsedNumber = double.parse(roundedPage).ceil();
-    return parsedNumber;
-  }
-
-  /// Gets the total number of pages in the list.
-  int get pageLenght => (position.maxScrollExtent / _snapSize).ceil();
-
-  double _snapSize = 0;
-
-  /// Sets the snap size for scrolling.
-  set snapSize(double value) => _snapSize = value;
 }

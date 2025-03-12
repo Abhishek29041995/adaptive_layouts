@@ -3,53 +3,49 @@
 import 'package:flutter/material.dart';
 
 class SnapScrollSize extends ScrollPhysics {
-  const SnapScrollSize({super.parent, required this.snapSize});
-
   final double snapSize;
+
+  const SnapScrollSize({required this.snapSize, super.parent});
 
   @override
   SnapScrollSize applyTo(ScrollPhysics? ancestor) {
-    return SnapScrollSize(parent: buildParent(ancestor), snapSize: snapSize);
+    return SnapScrollSize(snapSize: snapSize, parent: buildParent(ancestor));
   }
 
-  double _getPage(ScrollMetrics position) {
-    return position.pixels / snapSize;
+  double _getTargetPixels(double velocity, double pixels) {
+    double snap = snapSize;
+    double target = (pixels / snap).round() * snap;
+    return target;
   }
 
-  double _getPixels(ScrollMetrics position, double page) {
-    return page * snapSize;
+  @override
+  double applyPhysicsToUserOffset(ScrollMetrics position, double offset) {
+    return offset;
   }
 
-  double _getTargetPixels(
-      ScrollMetrics position, Tolerance tolerance, double velocity) {
-    double page = _getPage(position);
-    if (velocity < -tolerance.velocity) {
-      page -= 0.5;
-    } else if (velocity > tolerance.velocity) {
-      page += 0.5;
-    }
-    return _getPixels(position, page.roundToDouble());
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    if (value < position.minScrollExtent)
+      return value - position.minScrollExtent;
+    if (value > position.maxScrollExtent)
+      return value - position.maxScrollExtent;
+    return 0.0;
   }
 
   @override
   Simulation? createBallisticSimulation(
       ScrollMetrics position, double velocity) {
-    // If we're out of range and not headed back in range, defer to the parent
-    // ballistics, which should put us back in range at a page boundary.
-    if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
-        (velocity >= 0.0 && position.pixels >= position.maxScrollExtent)) {
-      return super.createBallisticSimulation(position, velocity);
-    }
-    // ignore: deprecated_member_use
-    final Tolerance tolerance = this.tolerance;
-    final double target = _getTargetPixels(position, tolerance, velocity);
-    if (target != position.pixels) {
-      return ScrollSpringSimulation(spring, position.pixels, target, velocity,
-          tolerance: tolerance);
+    if ((velocity.abs() >= toleranceFor(position).velocity ||
+        position.outOfRange)) {
+      final target = _getTargetPixels(velocity, position.pixels);
+      return ScrollSpringSimulation(
+        spring,
+        position.pixels,
+        target,
+        velocity,
+        tolerance: toleranceFor(position), // Fixed deprecated tolerance
+      );
     }
     return null;
   }
-
-  @override
-  bool get allowImplicitScrolling => false;
 }
