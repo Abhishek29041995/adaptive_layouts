@@ -128,36 +128,43 @@ class _GridRow extends StatelessWidget {
       padding: EdgeInsets.only(
         top: (columnIndex == 0) ? 0 : mainAxisSpacing,
       ),
-      child: IntrinsicHeight(
-        // ✅ Ensures all children take the height of the tallest
-        child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch, // ✅ Makes items stretch
-          children: List.generate(
-            (crossAxisCount * 2) - 1,
-            (rowIndex) {
-              final rowNum = rowIndex + 1;
-              if (rowNum % 2 == 0) {
-                return SizedBox(width: crossAxisSpacing);
-              }
-              final rowItemIndex = ((rowNum + 1) ~/ 2) - 1;
-              final itemIndex = (columnIndex * crossAxisCount) + rowItemIndex;
-              if (itemIndex > itemCount - 1) {
-                return const Expanded(
-                    child: SizedBox()); // Ensures alignment in the last row
-              }
-              return Expanded(
-                child: Column(
-                  mainAxisSize:
-                      MainAxisSize.min, // ✅ Makes it take only required height
-                  children: [
-                    builder(context, itemIndex),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
+      child: LayoutBuilder(
+        // Ensures height adapts dynamically
+        builder: (context, constraints) {
+          return IntrinsicHeight(
+            // Forces children to take the height of the tallest one
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: List.generate(
+                (crossAxisCount * 2) - 1,
+                (rowIndex) {
+                  final rowNum = rowIndex + 1;
+                  if (rowNum % 2 == 0) {
+                    return SizedBox(width: crossAxisSpacing);
+                  }
+                  final rowItemIndex = ((rowNum + 1) ~/ 2) - 1;
+                  final itemIndex =
+                      (columnIndex * crossAxisCount) + rowItemIndex;
+                  if (itemIndex > itemCount - 1) {
+                    return Expanded(
+                        child: SizedBox()); // Keeps alignment in last row
+                  }
+                  return Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize
+                          .max, // Forces items to fill available height
+                      children: [
+                        Expanded(
+                            child: builder(
+                                context, itemIndex)), // Ensures equal height
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        },
       ),
     );
   }
