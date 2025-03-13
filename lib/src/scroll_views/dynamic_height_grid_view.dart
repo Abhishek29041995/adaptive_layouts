@@ -18,7 +18,8 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
-  final Widget Function(BuildContext, T) itemBuilder;
+  final Widget Function(BuildContext, T, int)
+      itemBuilder; // Updated to pass index
   final Widget Function(BuildContext, G) headerBuilder;
   final int crossAxisCount;
   final double crossAxisSpacing;
@@ -42,8 +43,8 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
           children: [
             headerBuilder(ctx, group.groupKey),
             DynamicHeightGridView(
-              builder: (context, itemIndex) =>
-                  itemBuilder(context, group.items[itemIndex]),
+              builder: (context, itemIndex) => itemBuilder(
+                  context, group.items[itemIndex], itemIndex), // Pass index
               itemCount: group.items.length,
               crossAxisCount: crossAxisCount,
               crossAxisSpacing: crossAxisSpacing,
