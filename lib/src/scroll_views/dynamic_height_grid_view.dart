@@ -19,7 +19,7 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
-  final Widget Function(BuildContext, T, int) itemBuilder;
+  final Widget Function(BuildContext, G, T, int) itemBuilder;
   final Widget Function(BuildContext, G) headerBuilder;
   final int Function(G groupKey) crossAxisCount; // ✅ Changed to Function
   final double crossAxisSpacing;
@@ -78,14 +78,14 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: itemCount,
-        itemBuilder: (context, index) =>
-            itemBuilder(context, group.items[index], index),
+        itemBuilder: (context, itemIndex) => itemBuilder(
+            context, group.groupKey, group.items[itemIndex], itemIndex),
       );
     }
 
     return DynamicHeightGridView(
-      builder: (context, itemIndex) =>
-          itemBuilder(context, group.items[itemIndex], itemIndex),
+      builder: (context, itemIndex) => itemBuilder(
+          context, group.groupKey, group.items[itemIndex], itemIndex),
       itemCount: group.items.length,
       crossAxisCount: crossAxisCount(group.groupKey), // ✅ Use dynamic count
       crossAxisSpacing: crossAxisSpacing,
