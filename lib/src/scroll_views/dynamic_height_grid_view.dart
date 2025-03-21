@@ -15,11 +15,11 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     this.controller,
     this.shrinkWrap = false,
     this.physics,
+    this.wrapperBuilder, // ✅ Optional wrapper widget
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
-  final Widget Function(BuildContext, T, int)
-      itemBuilder; // Updated to pass index
+  final Widget Function(BuildContext, T, int) itemBuilder;
   final Widget Function(BuildContext, G) headerBuilder;
   final int crossAxisCount;
   final double crossAxisSpacing;
@@ -28,6 +28,7 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   final ScrollPhysics? physics;
   final ScrollController? controller;
   final bool shrinkWrap;
+  final Widget Function(BuildContext, Widget)? wrapperBuilder; // ✅ New wrapper function
 
   @override
   Widget build(BuildContext context) {
@@ -38,78 +39,46 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
       itemCount: groupedItems.length,
       itemBuilder: (ctx, groupIndex) {
         final group = groupedItems[groupIndex];
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            headerBuilder(ctx, group.groupKey),
-            DynamicHeightGridView(
-              builder: (context, itemIndex) => itemBuilder(
-                  context, group.items[itemIndex], itemIndex), // Pass index
-              itemCount: group.items.length,
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: crossAxisSpacing,
-              mainAxisSpacing: mainAxisSpacing,
-              rowCrossAxisAlignment: rowCrossAxisAlignment,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+            // ✅ Always Show Header
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+              child: headerBuilder(ctx, group.groupKey),
             ),
+
+            // ✅ Wrap the GridView if `wrapperBuilder` is provided
+            if (wrapperBuilder != null)
+              wrapperBuilder!(ctx, _buildGridView(group))
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: _buildGridView(group),
+              ),
           ],
         );
       },
     );
   }
-}
 
-/// Sliver implementation of grouped dynamic height grid.
-class SliverGroupedDynamicHeightGridView<G, T> extends StatelessWidget {
-  const SliverGroupedDynamicHeightGridView({
-    Key? key,
-    required this.groupedItems,
-    required this.itemBuilder,
-    required this.headerBuilder,
-    required this.crossAxisCount,
-    this.crossAxisSpacing = 8,
-    this.mainAxisSpacing = 8,
-    this.rowCrossAxisAlignment = CrossAxisAlignment.start,
-  }) : super(key: key);
-
-  final List<Group<G, T>> groupedItems;
-  final Widget Function(BuildContext, T) itemBuilder;
-  final Widget Function(BuildContext, G) headerBuilder;
-  final int crossAxisCount;
-  final double crossAxisSpacing;
-  final double mainAxisSpacing;
-  final CrossAxisAlignment rowCrossAxisAlignment;
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (ctx, groupIndex) {
-          final group = groupedItems[groupIndex];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              headerBuilder(ctx, group.groupKey),
-              DynamicHeightGridView(
-                builder: (context, itemIndex) =>
-                    itemBuilder(context, group.items[itemIndex]),
-                itemCount: group.items.length,
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: crossAxisSpacing,
-                mainAxisSpacing: mainAxisSpacing,
-                rowCrossAxisAlignment: rowCrossAxisAlignment,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-              ),
-            ],
-          );
-        },
-        childCount: groupedItems.length,
-      ),
+  /// ✅ Extracted GridView Builder (Avoids Repetition)
+  Widget _buildGridView(Group<G, T> group) {
+    return DynamicHeightGridView(
+      builder: (context, itemIndex) =>
+          itemBuilder(context, group.items[itemIndex], itemIndex),
+      itemCount: group.items.length,
+      crossAxisCount: crossAxisCount,
+      crossAxisSpacing: crossAxisSpacing,
+      mainAxisSpacing: mainAxisSpacing,
+      rowCrossAxisAlignment: rowCrossAxisAlignment,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
     );
   }
 }
+
 
 /// Sliver Dynamic Height GridView
 class SliverDynamicHeightGridView extends StatelessWidget {
