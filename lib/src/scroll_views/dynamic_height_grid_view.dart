@@ -28,7 +28,8 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   final ScrollPhysics? physics;
   final ScrollController? controller;
   final bool shrinkWrap;
-  final Widget Function(BuildContext, Widget, G groupKey)? wrapperBuilder; // ✅ Updated to include `groupKey`
+  final Widget Function(BuildContext, Widget, G groupKey)?
+      wrapperBuilder; // ✅ Updated to include `groupKey`
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +70,19 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
 
   /// ✅ Extracted GridView Builder (Avoids Repetition)
   Widget _buildGridView(Group<G, T> group) {
+    final itemCount = group.items.length;
+    final isSingleColumn = crossAxisCount(group.groupKey) == 1;
+
+    if (isSingleColumn) {
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: itemCount,
+        itemBuilder: (context, index) =>
+            itemBuilder(context, group.items[index], index),
+      );
+    }
+
     return DynamicHeightGridView(
       builder: (context, itemIndex) =>
           itemBuilder(context, group.items[itemIndex], itemIndex),
@@ -82,7 +96,6 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     );
   }
 }
-
 
 /// Sliver Dynamic Height GridView
 class SliverDynamicHeightGridView extends StatelessWidget {
