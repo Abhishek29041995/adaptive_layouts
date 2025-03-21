@@ -15,20 +15,20 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     this.controller,
     this.shrinkWrap = false,
     this.physics,
-    this.wrapperBuilder, // ✅ Optional wrapper widget
+    this.wrapperBuilder, // ✅ Updated to include `groupKey`
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
   final Widget Function(BuildContext, T, int) itemBuilder;
   final Widget Function(BuildContext, G) headerBuilder;
-  final int crossAxisCount;
+  final int Function(G groupKey) crossAxisCount; // ✅ Changed to Function
   final double crossAxisSpacing;
   final double mainAxisSpacing;
   final CrossAxisAlignment rowCrossAxisAlignment;
   final ScrollPhysics? physics;
   final ScrollController? controller;
   final bool shrinkWrap;
-  final Widget Function(BuildContext, Widget)? wrapperBuilder; // ✅ New wrapper function
+  final Widget Function(BuildContext, Widget, G groupKey)? wrapperBuilder; // ✅ Updated to include `groupKey`
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +40,18 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
       itemBuilder: (ctx, groupIndex) {
         final group = groupedItems[groupIndex];
 
+        Widget gridView = _buildGridView(group);
+
+        // ✅ Apply wrapper if provided
+        if (wrapperBuilder != null) {
+          gridView = wrapperBuilder!(ctx, gridView, group.groupKey);
+        } else {
+          gridView = Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: gridView,
+          );
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,15 +60,7 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
               child: headerBuilder(ctx, group.groupKey),
             ),
-
-            // ✅ Wrap the GridView if `wrapperBuilder` is provided
-            if (wrapperBuilder != null)
-              wrapperBuilder!(ctx, _buildGridView(group))
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                child: _buildGridView(group),
-              ),
+            gridView,
           ],
         );
       },
@@ -69,7 +73,7 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
       builder: (context, itemIndex) =>
           itemBuilder(context, group.items[itemIndex], itemIndex),
       itemCount: group.items.length,
-      crossAxisCount: crossAxisCount,
+      crossAxisCount: crossAxisCount(group.groupKey), // ✅ Use dynamic count
       crossAxisSpacing: crossAxisSpacing,
       mainAxisSpacing: mainAxisSpacing,
       rowCrossAxisAlignment: rowCrossAxisAlignment,
