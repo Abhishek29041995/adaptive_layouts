@@ -1,51 +1,76 @@
-//SOURCE: https://stackoverflow.com/questions/60458885/how-to-autocorrect-scroll-position-in-a-listview-flutter
-
 import 'package:flutter/material.dart';
 
 class SnapScrollSize extends ScrollPhysics {
   final double snapSize;
+  final double maxScrollVelocity;
+  final double minScrollVelocity;
+  final SpringDescription springDescription;
 
-  const SnapScrollSize({required this.snapSize, super.parent});
+  const SnapScrollSize({
+    super.parent,
+    required this.snapSize,
+    this.maxScrollVelocity = 3500.0,
+    this.minScrollVelocity = 150.0,
+    this.springDescription = const SpringDescription(
+      mass: 0.5,
+      stiffness: 200.0,
+      damping: 1.1,
+    ),
+  });
 
   @override
   SnapScrollSize applyTo(ScrollPhysics? ancestor) {
-    return SnapScrollSize(snapSize: snapSize, parent: buildParent(ancestor));
+    return SnapScrollSize(
+      parent: buildParent(ancestor),
+      snapSize: snapSize,
+      maxScrollVelocity: maxScrollVelocity,
+      minScrollVelocity: minScrollVelocity,
+      springDescription: springDescription,
+    );
   }
 
-  double _getTargetPixels(double velocity, double pixels) {
-    double snap = snapSize;
-    double target = (pixels / snap).round() * snap;
-    return target;
-  }
+  double _getTargetPixels(
+      ScrollMetrics position, Tolerance tolerance, double velocity) {
+    double page = position.pixels / snapSize;
 
-  @override
-  double applyPhysicsToUserOffset(ScrollMetrics position, double offset) {
-    return offset;
-  }
+    if (velocity.abs() < minScrollVelocity) {
+      return page.round() * snapSize;
+    }
 
-  @override
-  double applyBoundaryConditions(ScrollMetrics position, double value) {
-    if (value < position.minScrollExtent)
-      return value - position.minScrollExtent;
-    if (value > position.maxScrollExtent)
-      return value - position.maxScrollExtent;
-    return 0.0;
+    if (velocity > 0.0 && velocity < maxScrollVelocity) {
+      return page.ceil() * snapSize;
+    }
+
+    if (velocity < 0.0 && velocity > -maxScrollVelocity) {
+      return page.floor() * snapSize;
+    }
+
+    return position.pixels;
   }
 
   @override
   Simulation? createBallisticSimulation(
       ScrollMetrics position, double velocity) {
-    if ((velocity.abs() >= toleranceFor(position).velocity ||
-        position.outOfRange)) {
-      final target = _getTargetPixels(velocity, position.pixels);
+    if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
+        (velocity >= 0.0 && position.pixels >= position.maxScrollExtent)) {
+      return super.createBallisticSimulation(position, velocity);
+    }
+
+    final double target = _getTargetPixels(position, tolerance, velocity);
+
+    if (target != position.pixels) {
       return ScrollSpringSimulation(
-        spring,
+        springDescription,
         position.pixels,
         target,
         velocity,
-        tolerance: toleranceFor(position), // Fixed deprecated tolerance
+        tolerance: tolerance,
       );
     }
+
     return null;
   }
+
+  @override
+  bool get allowImplicitScrolling => false;
 }

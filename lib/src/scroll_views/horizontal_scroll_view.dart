@@ -32,55 +32,45 @@ class HorizontalListView extends StatefulWidget {
 class _HorizontalListViewState extends State<HorizontalListView> {
   double _maxItemHeight = 0;
   late List<GlobalKey> itemKeys;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
     itemKeys = List.generate(widget.itemCount, (index) => GlobalKey());
+    _scrollController = widget.controller ?? ScrollController();
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate item width based on crossAxisCount and widthPercentage
         double itemWidth;
         if (widget.crossAxisCount == 1) {
-          // When crossAxisCount is 1, use the specified percentage of screen width
           itemWidth = constraints.maxWidth * (widget.widthPercentage! / 100);
         } else {
-          // When crossAxisCount > 1, divide available space among items
           itemWidth = (constraints.maxWidth -
                   ((widget.crossAxisCount - 1) * widget.crossAxisSpacing)) /
               widget.crossAxisCount;
         }
 
-        // Update snapSize to use itemWidth instead of full screen width
         double snapSize = itemWidth + widget.crossAxisSpacing;
-        SnapScrollSize scrollPhysics = SnapScrollSize(snapSize: snapSize);
-
-        // Measure the tallest item's height
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          double maxHeight = 0;
-          for (var key in itemKeys) {
-            final context = key.currentContext;
-            if (context != null) {
-              final box = context.findRenderObject() as RenderBox?;
-              if (box != null) {
-                maxHeight = math.max(maxHeight, box.size.height);
-              }
-            }
-          }
-          if (maxHeight > 0 && maxHeight != _maxItemHeight) {
-            setState(() {
-              _maxItemHeight = maxHeight;
-            });
-          }
-        });
 
         return SingleChildScrollView(
-          controller: widget.controller,
-          physics: scrollPhysics,
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics().applyTo(
+            SnapScrollSize(
+              snapSize: snapSize,
+              maxScrollVelocity:
+                  3500, // Increased velocity for smoother scrolling
+              minScrollVelocity: 150, // Minimum velocity for snap
+              springDescription: const SpringDescription(
+                mass: 0.5, // Reduced mass for faster response
+                stiffness: 200, // Increased stiffness for better snap
+                damping: 1.1, // Adjusted damping for smooth stop
+              ),
+            ),
+          ),
           scrollDirection: Axis.horizontal,
           child: Row(
             crossAxisAlignment: widget.alignment ?? CrossAxisAlignment.end,
