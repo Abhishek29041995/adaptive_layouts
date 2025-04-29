@@ -10,6 +10,7 @@ class HorizontalListView extends StatefulWidget {
   final List<Widget>? children;
   final Widget Function(BuildContext, int)? itemBuilder;
   final CrossAxisAlignment? alignment;
+  final double? widthPercentage;
 
   const HorizontalListView({
     super.key,
@@ -20,6 +21,7 @@ class HorizontalListView extends StatefulWidget {
     this.children,
     this.itemBuilder,
     this.alignment,
+    this.widthPercentage = 100,
   }) : assert(children != null || itemBuilder != null,
             "Either children or itemBuilder must be provided");
 
@@ -41,12 +43,21 @@ class _HorizontalListViewState extends State<HorizontalListView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        double snapSize = constraints.maxWidth + widget.crossAxisSpacing;
-        SnapScrollSize scrollPhysics = SnapScrollSize(snapSize: snapSize);
+        // Calculate item width based on crossAxisCount and widthPercentage
+        double itemWidth;
+        if (widget.crossAxisCount == 1) {
+          // When crossAxisCount is 1, use the specified percentage of screen width
+          itemWidth = constraints.maxWidth * (widget.widthPercentage! / 100);
+        } else {
+          // When crossAxisCount > 1, divide available space among items
+          itemWidth = (constraints.maxWidth -
+                  ((widget.crossAxisCount - 1) * widget.crossAxisSpacing)) /
+              widget.crossAxisCount;
+        }
 
-        double itemWidth = (constraints.maxWidth -
-                ((widget.crossAxisCount - 1) * widget.crossAxisSpacing)) /
-            widget.crossAxisCount;
+        // Update snapSize to use itemWidth instead of full screen width
+        double snapSize = itemWidth + widget.crossAxisSpacing;
+        SnapScrollSize scrollPhysics = SnapScrollSize(snapSize: snapSize);
 
         // Measure the tallest item's height
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -81,7 +92,7 @@ class _HorizontalListViewState extends State<HorizontalListView> {
                     width: itemWidth,
                     height: _maxItemHeight > 0 ? _maxItemHeight : null,
                     child: Container(
-                      key: itemKeys[index ~/ 2], // Assign keys to items
+                      key: itemKeys[index ~/ 2],
                       child: widget.children != null
                           ? widget.children![index ~/ 2]
                           : widget.itemBuilder!.call(context, index ~/ 2),
