@@ -16,11 +16,10 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     this.shrinkWrap = false,
     this.physics,
     this.wrapperBuilder,
-    this.headerPadding =
-        const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-    this.gridViewPadding =
-        const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    this.headerPadding = const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+    this.gridViewPadding = const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     this.emptyBuilder,
+    this.onRefresh,
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
@@ -38,10 +37,11 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   final EdgeInsetsGeometry headerPadding;
   final EdgeInsetsGeometry gridViewPadding;
   final Widget Function(BuildContext, G)? emptyBuilder;
+  final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    Widget listView = ListView.builder(
       controller: controller,
       shrinkWrap: shrinkWrap,
       physics: physics,
@@ -80,6 +80,15 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
         );
       },
     );
+
+    if (onRefresh != null) {
+      return RefreshIndicator(
+        onRefresh: onRefresh!,
+        child: listView,
+      );
+    }
+
+    return listView;
   }
 
   /// ✅ Extracted GridView Builder (Avoids Repetition)
