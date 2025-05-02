@@ -15,7 +15,12 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     this.controller,
     this.shrinkWrap = false,
     this.physics,
-    this.wrapperBuilder, // ✅ Updated to include `groupKey`
+    this.wrapperBuilder,
+    this.headerPadding =
+        const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+    this.gridViewPadding =
+        const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    this.emptyBuilder,
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
@@ -30,6 +35,9 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   final bool shrinkWrap;
   final Widget Function(BuildContext, Widget, G groupKey)?
       wrapperBuilder; // ✅ Updated to include `groupKey`
+  final EdgeInsetsGeometry headerPadding;
+  final EdgeInsetsGeometry gridViewPadding;
+  final Widget Function(BuildContext, G)? emptyBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -41,27 +49,33 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
       itemBuilder: (ctx, groupIndex) {
         final group = groupedItems[groupIndex];
 
-        Widget gridView = _buildGridView(group);
-
-        // ✅ Apply wrapper if provided
-        if (wrapperBuilder != null) {
-          gridView = wrapperBuilder!(ctx, gridView, group.groupKey);
-        } else {
-          gridView = Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: gridView,
+        Widget content;
+        if (group.items.isEmpty && emptyBuilder != null) {
+          content = Padding(
+            padding: gridViewPadding,
+            child: emptyBuilder!(ctx, group.groupKey),
           );
+        } else {
+          Widget gridView = _buildGridView(group);
+
+          if (wrapperBuilder != null) {
+            content = wrapperBuilder!(ctx, gridView, group.groupKey);
+          } else {
+            content = Padding(
+              padding: gridViewPadding,
+              child: gridView,
+            );
+          }
         }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Always Show Header
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+              padding: headerPadding,
               child: headerBuilder(ctx, group.groupKey),
             ),
-            gridView,
+            content,
           ],
         );
       },
