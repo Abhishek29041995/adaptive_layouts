@@ -20,6 +20,8 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     this.gridViewPadding = const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     this.emptyBuilder,
     this.onRefresh,
+    this.isLoading = false,
+    this.loadingBuilder,
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
@@ -38,6 +40,8 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   final EdgeInsetsGeometry gridViewPadding;
   final Widget Function(BuildContext, G)? emptyBuilder;
   final Future<void> Function()? onRefresh;
+  final bool isLoading;
+  final Widget Function(BuildContext, G)? loadingBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +54,12 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
         final group = groupedItems[groupIndex];
 
         Widget content;
-        if (group.items.isEmpty && emptyBuilder != null) {
+        if (isLoading && loadingBuilder != null) {
+          content = Padding(
+            padding: gridViewPadding,
+            child: loadingBuilder!(ctx, group.groupKey),
+          );
+        } else if (group.items.isEmpty && emptyBuilder != null) {
           content = Padding(
             padding: gridViewPadding,
             child: emptyBuilder!(ctx, group.groupKey),
