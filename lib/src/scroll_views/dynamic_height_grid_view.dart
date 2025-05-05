@@ -16,8 +16,10 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     this.shrinkWrap = false,
     this.physics,
     this.wrapperBuilder,
-    this.headerPadding = const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-    this.gridViewPadding = const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    this.headerPadding =
+        const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+    this.gridViewPadding =
+        const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     this.emptyBuilder,
     this.onRefresh,
     this.isLoading = false,

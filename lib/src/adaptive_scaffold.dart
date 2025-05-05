@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../src/responsive/responsive_helper.dart';
 
-class AdaptiveScaffold extends StatelessWidget {
+class AdaptiveScaffold extends StatefulWidget {
   final PreferredSizeWidget? appBar;
   final Widget? floatingActionButton;
   final Widget? drawer;
@@ -12,6 +12,8 @@ class AdaptiveScaffold extends StatelessWidget {
   final List<NavigationRailDestination>? navigationRailDestinations;
   final ValueChanged<int>? onTap;
   final int currentIndex;
+  final bool
+      autoAdaptNavigation; // New parameter for controlling auto-adaptation
 
   const AdaptiveScaffold({
     super.key,
@@ -25,8 +27,14 @@ class AdaptiveScaffold extends StatelessWidget {
     this.navigationRailDestinations,
     this.onTap,
     this.currentIndex = 0,
+    this.autoAdaptNavigation = true, // Default to auto-adaptation
   });
 
+  @override
+  State<AdaptiveScaffold> createState() => _AdaptiveScaffoldState();
+}
+
+class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
   @override
   Widget build(BuildContext context) {
     final breakpoint = Responsive.currentBreakpoint(context);
@@ -39,42 +47,45 @@ class AdaptiveScaffold extends StatelessWidget {
     final bool isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
+    // Determine navigation style based on auto-adaptation setting
+    final bool useNavigationRail = widget.navigationRailDestinations != null &&
+        (widget.autoAdaptNavigation
+            ? (isDesktop || isTablet || (isMobile && isLandscape))
+            : true);
+
     return Scaffold(
-      appBar: appBar,
-      drawer: !isDesktop ? drawer : null,
-      endDrawer: !isDesktop ? endDrawer : null,
-      body: Stack(
+      appBar: widget.appBar,
+      drawer: widget.drawer,
+      endDrawer: widget.endDrawer,
+      body: Row(
         children: [
-          Row(
-            children: [
-              if (isDesktop && drawer != null)
-                SizedBox(width: 250, child: drawer),
-              if ((isDesktop || isTablet || (isMobile && isLandscape)) &&
-                  navigationRailDestinations != null)
-                NavigationRail(
-                  selectedIndex: currentIndex,
-                  onDestinationSelected: onTap,
-                  labelType: NavigationRailLabelType.selected,
-                  destinations: navigationRailDestinations!,
-                ),
-              Expanded(child: body!),
-              if (isDesktop && endDrawer != null)
-                SizedBox(width: 250, child: endDrawer),
-            ],
-          ),
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: floatingActionButton ?? const SizedBox.shrink(),
+          if (useNavigationRail)
+            NavigationRail(
+              selectedIndex: widget.currentIndex,
+              onDestinationSelected: widget.onTap,
+              labelType: NavigationRailLabelType.selected,
+              destinations: widget.navigationRailDestinations!,
+            ),
+          Expanded(
+            child: Stack(
+              children: [
+                widget.body!,
+                if (widget.floatingActionButton != null)
+                  Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: widget.floatingActionButton!,
+                  ),
+              ],
+            ),
           ),
         ],
       ),
-      bottomNavigationBar:
-          !((isDesktop || isTablet || (isMobile && isLandscape)) &&
-                  navigationRailDestinations != null)
-              ? bottomNavigationBar
-              : null,
-      bottomSheet: bottomSheet,
+      bottomNavigationBar: widget.navigationRailDestinations != null &&
+              (!useNavigationRail || !widget.autoAdaptNavigation)
+          ? widget.bottomNavigationBar
+          : null,
+      bottomSheet: widget.bottomSheet,
     );
   }
 }
