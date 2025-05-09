@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'group_item.dart';
 
-/// GridView with dynamic height and group support./// GridView with dynamic height and group support.
+/// GridView with dynamic height and group support.
 class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   const GroupedDynamicHeightGridView({
     Key? key,
