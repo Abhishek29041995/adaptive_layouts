@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'group_item.dart';
 
-/// GridView with dynamic height and group support.
+/// GridView with dynamic height and group support./// GridView with dynamic height and group support.
 class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   const GroupedDynamicHeightGridView({
     Key? key,
@@ -329,19 +329,16 @@ class StickyHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      slivers: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         SliverPersistentHeader(
           pinned: true,
           delegate: _StickyHeaderDelegate(
             child: header,
           ),
         ),
-        SliverToBoxAdapter(
-          child: content,
-        ),
+        content,
       ],
     );
   }
