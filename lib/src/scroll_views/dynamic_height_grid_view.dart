@@ -329,16 +329,19 @@ class StickyHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return CustomScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      slivers: [
         SliverPersistentHeader(
           pinned: true,
           delegate: _StickyHeaderDelegate(
             child: header,
           ),
         ),
-        content,
+        SliverToBoxAdapter(
+          child: content,
+        ),
       ],
     );
   }
