@@ -24,6 +24,7 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     this.onRefresh,
     this.isLoading = false,
     this.loadingBuilder,
+    this.stickyHeaders = false,  // Add this parameter
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
@@ -44,62 +45,90 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   final Future<void> Function()? onRefresh;
   final bool isLoading;
   final Widget Function(BuildContext, G)? loadingBuilder;
+  final bool stickyHeaders;  // Add this field
 
   @override
   Widget build(BuildContext context) {
-    Widget listView = ListView.builder(
-      controller: controller,
-      shrinkWrap: shrinkWrap,
-      physics: physics,
-      itemCount: groupedItems.length,
-      itemBuilder: (ctx, groupIndex) {
-        final group = groupedItems[groupIndex];
-
-        Widget content;
-        if (isLoading && loadingBuilder != null) {
-          content = Padding(
-            padding: gridViewPadding,
-            child: loadingBuilder!(ctx, group.groupKey),
-          );
-        } else if (group.items.isEmpty && emptyBuilder != null) {
-          content = Padding(
-            padding: gridViewPadding,
-            child: emptyBuilder!(ctx, group.groupKey),
-          );
-        } else {
-          Widget gridView = _buildGridView(group);
-
-          if (wrapperBuilder != null) {
-            content = wrapperBuilder!(ctx, gridView, group.groupKey);
-          } else {
-            content = Padding(
-              padding: gridViewPadding,
-              child: gridView,
-            );
-          }
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: headerPadding,
-              child: headerBuilder(ctx, group.groupKey),
+    Widget listView = stickyHeaders 
+        ? SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (ctx, groupIndex) => _buildGroupItem(ctx, groupIndex),
+              childCount: groupedItems.length,
             ),
-            content,
-          ],
-        );
-      },
-    );
+          )
+        : ListView.builder(
+            controller: controller,
+            shrinkWrap: shrinkWrap,
+            physics: physics,
+            itemCount: groupedItems.length,
+            itemBuilder: _buildGroupItem,
+          );
 
     if (onRefresh != null) {
       return RefreshIndicator(
         onRefresh: onRefresh!,
-        child: listView,
+        child: stickyHeaders
+            ? CustomScrollView(
+                controller: controller,
+                physics: physics,
+                shrinkWrap: shrinkWrap,
+                slivers: [listView],
+              )
+            : listView,
       );
     }
 
-    return listView;
+    return stickyHeaders
+        ? CustomScrollView(
+            controller: controller,
+            physics: physics,
+            shrinkWrap: shrinkWrap,
+            slivers: [listView],
+          )
+        : listView;
+  }
+
+  Widget _buildGroupItem(BuildContext ctx, int groupIndex) {
+    final group = groupedItems[groupIndex];
+
+    Widget content;
+    if (isLoading && loadingBuilder != null) {
+      content = Padding(
+        padding: gridViewPadding,
+        child: loadingBuilder!(ctx, group.groupKey),
+      );
+    } else if (group.items.isEmpty && emptyBuilder != null) {
+      content = Padding(
+        padding: gridViewPadding,
+        child: emptyBuilder!(ctx, group.groupKey),
+      );
+    } else {
+      Widget gridView = _buildGridView(group);
+
+      if (wrapperBuilder != null) {
+        content = wrapperBuilder!(ctx, gridView, group.groupKey);
+      } else {
+        content = Padding(
+          padding: gridViewPadding,
+          child: gridView,
+        );
+      }
+    }
+
+    final header = Padding(
+      padding: headerPadding,
+      child: headerBuilder(ctx, group.groupKey),
+    );
+
+    return stickyHeaders
+        ? StickyHeader(
+            header: header,
+            content: content,
+          )
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [header, content],
+          );
   }
 
   /// ✅ Extracted GridView Builder (Avoids Repetition)
@@ -284,5 +313,60 @@ class _GridRow extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+/// Simple StickyHeader implementation
+class StickyHeader extends StatelessWidget {
+  const StickyHeader({
+    Key? key,
+    required this.header,
+    required this.content,
+  }) : super(key: key);
+
+  final Widget header;
+  final Widget content;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _StickyHeaderDelegate(
+            child: header,
+          ),
+        ),
+        content,
+      ],
+    );
+  }
+}
+
+class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _StickyHeaderDelegate({
+    required this.child,
+  });
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: child,
+    );
+  }
+
+  @override
+  double get maxExtent => kToolbarHeight;
+
+  @override
+  double get minExtent => kToolbarHeight;
+
+  @override
+  bool shouldRebuild(covariant _StickyHeaderDelegate oldDelegate) {
+    return child != oldDelegate.child;
   }
 }
