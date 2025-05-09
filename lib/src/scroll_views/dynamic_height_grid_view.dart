@@ -121,9 +121,11 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     );
 
     return stickyHeaders
-        ? StickyHeader(
-            header: header,
-            content: content,
+        ? SliverToBoxAdapter(
+            child: StickyHeader(
+              header: header,
+              content: content,
+            ),
           )
         : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,7 +332,6 @@ class StickyHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SliverPersistentHeader(
           pinned: true,
