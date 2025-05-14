@@ -1,35 +1,7 @@
 import 'package:flutter/material.dart';
 import 'group_item.dart';
 
-class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final Widget child;
-  final double height;
-
-  _StickyHeaderDelegate({
-    required this.child,
-    required this.height,
-  });
-
-  @override
-  double get minExtent => height;
-
-  @override
-  double get maxExtent => height;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: child,
-    );
-  }
-
-  @override
-  bool shouldRebuild(_StickyHeaderDelegate oldDelegate) {
-    return oldDelegate.child != child || oldDelegate.height != height;
-  }
-}
-
+/// GridView with dynamic height and group support./// GridView with dynamic height and group support.
 class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   const GroupedDynamicHeightGridView({
     Key? key,
@@ -44,13 +16,14 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
     this.shrinkWrap = false,
     this.physics,
     this.wrapperBuilder,
-    this.headerPadding = const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-    this.gridViewPadding = const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    this.headerPadding =
+        const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+    this.gridViewPadding =
+        const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     this.emptyBuilder,
     this.onRefresh,
     this.isLoading = false,
     this.loadingBuilder,
-    this.stickyHeaderIndex = 0, // New parameter to specify which header should be sticky
   }) : super(key: key);
 
   final List<Group<G, T>> groupedItems;
@@ -71,80 +44,62 @@ class GroupedDynamicHeightGridView<G, T> extends StatelessWidget {
   final Future<void> Function()? onRefresh;
   final bool isLoading;
   final Widget Function(BuildContext, G)? loadingBuilder;
-  final int stickyHeaderIndex; // New parameter
 
   @override
   Widget build(BuildContext context) {
-    Widget content = CustomScrollView(
+    Widget listView = ListView.builder(
       controller: controller,
       shrinkWrap: shrinkWrap,
       physics: physics,
-      slivers: _buildSlivers(context),
+      itemCount: groupedItems.length,
+      itemBuilder: (ctx, groupIndex) {
+        final group = groupedItems[groupIndex];
+
+        Widget content;
+        if (isLoading && loadingBuilder != null) {
+          content = Padding(
+            padding: gridViewPadding,
+            child: loadingBuilder!(ctx, group.groupKey),
+          );
+        } else if (group.items.isEmpty && emptyBuilder != null) {
+          content = Padding(
+            padding: gridViewPadding,
+            child: emptyBuilder!(ctx, group.groupKey),
+          );
+        } else {
+          Widget gridView = _buildGridView(group);
+
+          if (wrapperBuilder != null) {
+            content = wrapperBuilder!(ctx, gridView, group.groupKey);
+          } else {
+            content = Padding(
+              padding: gridViewPadding,
+              child: gridView,
+            );
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: headerPadding,
+              child: headerBuilder(ctx, group.groupKey),
+            ),
+            content,
+          ],
+        );
+      },
     );
 
     if (onRefresh != null) {
       return RefreshIndicator(
         onRefresh: onRefresh!,
-        child: content,
+        child: listView,
       );
     }
 
-    return content;
-  }
-
-  List<Widget> _buildSlivers(BuildContext context) {
-    final List<Widget> slivers = [];
-
-    for (int groupIndex = 0; groupIndex < groupedItems.length; groupIndex++) {
-      final group = groupedItems[groupIndex];
-      
-      // Create header
-      final header = Padding(
-        padding: headerPadding,
-        child: headerBuilder(context, group.groupKey),
-      );
-
-      // Add header as sticky or regular based on index
-      if (groupIndex == stickyHeaderIndex) {
-        slivers.add(
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _StickyHeaderDelegate(
-              child: header,
-              height: 56.0, // Adjust this value based on your header height
-            ),
-          ),
-        );
-      } else {
-        slivers.add(SliverToBoxAdapter(child: header));
-      }
-
-      // Add content
-      Widget content;
-      if (isLoading && loadingBuilder != null) {
-        content = Padding(
-          padding: gridViewPadding,
-          child: loadingBuilder!(context, group.groupKey),
-        );
-      } else if (group.items.isEmpty && emptyBuilder != null) {
-        content = Padding(
-          padding: gridViewPadding,
-          child: emptyBuilder!(context, group.groupKey),
-        );
-      } else {
-        Widget gridView = _buildGridView(group);
-        content = wrapperBuilder != null
-            ? wrapperBuilder!(context, gridView, group.groupKey)
-            : Padding(
-                padding: gridViewPadding,
-                child: gridView,
-              );
-      }
-
-      slivers.add(SliverToBoxAdapter(child: content));
-    }
-
-    return slivers;
+    return listView;
   }
 
   /// ✅ Extracted GridView Builder (Avoids Repetition)
